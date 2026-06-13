@@ -1,5 +1,6 @@
 import { getDatabase, generateId } from './index';
-import { Commodity, PaginatedResult } from './types';
+import type { Commodity, PaginatedResult } from './types';
+import type { SQLiteValue } from 'react-native-nitro-sqlite';
 
 export type CommodityFilter = {
   search?: string;
@@ -11,10 +12,10 @@ export type CommodityFilter = {
 
 function buildWhereClause(filter?: CommodityFilter): {
   clause: string;
-  values: unknown[];
+  values: SQLiteValue[];
 } {
   const conditions: string[] = [];
-  const values: unknown[] = [];
+  const values: SQLiteValue[] = [];
 
   if (!filter) return { clause: '', values };
 
@@ -40,17 +41,17 @@ function buildWhereClause(filter?: CommodityFilter): {
 export async function getAll(
   filter?: CommodityFilter,
 ): Promise<PaginatedResult<Commodity>> {
-  const db = await getDatabase();
+  const db = getDatabase();
   const { clause, values } = buildWhereClause(filter);
 
-  const [countResult] = await db.executeSql(
+  const { results: countResults } = db.execute(
     `SELECT COUNT(*) as total FROM commodities ${clause}`,
     values,
   );
-  const total = countResult.rows.item(0).total;
+  const total = Number(countResults[0].total);
 
   let sql = `SELECT * FROM commodities ${clause} ORDER BY name ASC`;
-  const queryValues: unknown[] = [...values];
+  const queryValues: SQLiteValue[] = [...values];
 
   if (filter?.page && filter?.perPage) {
     const offset = (filter.page - 1) * filter.perPage;
@@ -58,25 +59,21 @@ export async function getAll(
     queryValues.push(filter.perPage, offset);
   }
 
-  const [results] = await db.executeSql(sql, queryValues);
-  const data: Commodity[] = [];
-  for (let i = 0; i < results.rows.length; i++) {
-    data.push(results.rows.item(i));
-  }
-  return { data, total };
+  const { results } = db.execute(sql, queryValues);
+  return { data: results as unknown as Commodity[], total };
 }
 
 export async function getById(id: string): Promise<Commodity | null> {
-  const db = await getDatabase();
-  const [results] = await db.executeSql('SELECT * FROM commodities WHERE id = ?', [id]);
-  if (results.rows.length === 0) return null;
-  return results.rows.item(0);
+  const db = getDatabase();
+  const { results } = db.execute('SELECT * FROM commodities WHERE id = ?', [id]);
+  if (results.length === 0) return null;
+  return results[0] as unknown as Commodity;
 }
 
 export async function store(data: Omit<Commodity, 'id'>): Promise<Commodity> {
-  const db = await getDatabase();
+  const db = getDatabase();
   const id = generateId();
-  await db.executeSql(
+  db.execute(
     'INSERT INTO commodities (id, name, default_price, stock) VALUES (?, ?, ?, ?)',
     [id, data.name, data.default_price, data.stock],
   );
@@ -87,9 +84,9 @@ export async function update(
   id: string,
   data: Partial<Omit<Commodity, 'id'>>,
 ): Promise<void> {
-  const db = await getDatabase();
+  const db = getDatabase();
   const fields: string[] = [];
-  const values: unknown[] = [];
+  const values: SQLiteValue[] = [];
 
   if (data.name !== undefined) {
     fields.push('name = ?');
@@ -107,13 +104,10 @@ export async function update(
   if (fields.length === 0) return;
 
   values.push(id);
-  await db.executeSql(
-    `UPDATE commodities SET ${fields.join(', ')} WHERE id = ?`,
-    values,
-  );
+  db.execute(`UPDATE commodities SET ${fields.join(', ')} WHERE id = ?`, values);
 }
 
 export async function remove(id: string): Promise<void> {
-  const db = await getDatabase();
-  await db.executeSql('DELETE FROM commodities WHERE id = ?', [id]);
+  const db = getDatabase();
+  db.execute('DELETE FROM commodities WHERE id = ?', [id]);
 }

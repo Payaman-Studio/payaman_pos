@@ -1,27 +1,22 @@
-import SQLite from 'react-native-sqlite-storage';
+import { open } from 'react-native-nitro-sqlite';
 import { v4 as uuidv4 } from 'uuid';
 import { CREATE_TABLES } from './schema';
+import type { NitroSQLiteConnection } from 'react-native-nitro-sqlite';
 
-SQLite.enablePromise(true);
+let db: NitroSQLiteConnection | null = null;
 
-let db: SQLite.SQLiteDatabase | null = null;
-
-export async function getDatabase(): Promise<SQLite.SQLiteDatabase> {
+export function getDatabase(): NitroSQLiteConnection {
   if (db) return db;
 
-  db = await SQLite.openDatabase({
-    name: 'waroeng.db',
-    location: 'default',
-  });
-
-  await db.executeSql(CREATE_TABLES);
+  db = open({ name: 'waroeng.db' });
+  db.execute(CREATE_TABLES);
 
   return db;
 }
 
-export async function closeDatabase(): Promise<void> {
+export function closeDatabase(): void {
   if (db) {
-    await db.close();
+    db.close();
     db = null;
   }
 }

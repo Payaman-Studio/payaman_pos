@@ -1,5 +1,6 @@
 import { getDatabase, generateId } from './index';
-import { Product, PaginatedResult } from './types';
+import type { Product, PaginatedResult } from './types';
+import type { SQLiteValue } from 'react-native-nitro-sqlite';
 
 export type ProductFilter = {
   search?: string;
@@ -12,10 +13,10 @@ export type ProductFilter = {
 
 function buildWhereClause(filter?: ProductFilter): {
   clause: string;
-  values: unknown[];
+  values: SQLiteValue[];
 } {
   const conditions: string[] = [];
-  const values: unknown[] = [];
+  const values: SQLiteValue[] = [];
 
   if (!filter) return { clause: '', values };
 
@@ -46,17 +47,17 @@ function buildWhereClause(filter?: ProductFilter): {
 export async function getAll(
   filter?: ProductFilter,
 ): Promise<PaginatedResult<Product>> {
-  const db = await getDatabase();
+  const db = getDatabase();
   const { clause, values } = buildWhereClause(filter);
 
-  const [countResult] = await db.executeSql(
+  const { results: countResults } = db.execute(
     `SELECT COUNT(*) as total FROM products ${clause}`,
     values,
   );
-  const total = countResult.rows.item(0).total;
+  const total = Number(countResults[0].total);
 
   let sql = `SELECT * FROM products ${clause} ORDER BY name ASC`;
-  const queryValues: unknown[] = [...values];
+  const queryValues: SQLiteValue[] = [...values];
 
   if (filter?.page && filter?.perPage) {
     const offset = (filter.page - 1) * filter.perPage;
@@ -64,25 +65,21 @@ export async function getAll(
     queryValues.push(filter.perPage, offset);
   }
 
-  const [results] = await db.executeSql(sql, queryValues);
-  const data: Product[] = [];
-  for (let i = 0; i < results.rows.length; i++) {
-    data.push(results.rows.item(i));
-  }
-  return { data, total };
+  const { results } = db.execute(sql, queryValues);
+  return { data: results as unknown as Product[], total };
 }
 
 export async function getById(id: string): Promise<Product | null> {
-  const db = await getDatabase();
-  const [results] = await db.executeSql('SELECT * FROM products WHERE id = ?', [id]);
-  if (results.rows.length === 0) return null;
-  return results.rows.item(0);
+  const db = getDatabase();
+  const { results } = db.execute('SELECT * FROM products WHERE id = ?', [id]);
+  if (results.length === 0) return null;
+  return results[0] as unknown as Product;
 }
 
 export async function store(data: Omit<Product, 'id'>): Promise<Product> {
-  const db = await getDatabase();
+  const db = getDatabase();
   const id = generateId();
-  await db.executeSql(
+  db.execute(
     'INSERT INTO products (id, barcode, name, cost_price, selling_price, stock) VALUES (?, ?, ?, ?, ?, ?)',
     [id, data.barcode, data.name, data.cost_price, data.selling_price, data.stock],
   );
@@ -93,9 +90,9 @@ export async function update(
   id: string,
   data: Partial<Omit<Product, 'id'>>,
 ): Promise<void> {
-  const db = await getDatabase();
+  const db = getDatabase();
   const fields: string[] = [];
-  const values: unknown[] = [];
+  const values: SQLiteValue[] = [];
 
   if (data.barcode !== undefined) {
     fields.push('barcode = ?');
@@ -121,13 +118,10 @@ export async function update(
   if (fields.length === 0) return;
 
   values.push(id);
-  await db.executeSql(
-    `UPDATE products SET ${fields.join(', ')} WHERE id = ?`,
-    values,
-  );
+  db.execute(`UPDATE products SET ${fields.join(', ')} WHERE id = ?`, values);
 }
 
 export async function remove(id: string): Promise<void> {
-  const db = await getDatabase();
-  await db.executeSql('DELETE FROM products WHERE id = ?', [id]);
+  const db = getDatabase();
+  db.execute('DELETE FROM products WHERE id = ?', [id]);
 }

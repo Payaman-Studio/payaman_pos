@@ -1,5 +1,6 @@
 import { getDatabase, generateId } from './index';
-import { Transaction, PaginatedResult } from './types';
+import type { Transaction, PaginatedResult } from './types';
+import type { SQLiteValue } from 'react-native-nitro-sqlite';
 
 export type TransactionFilter = {
   dateFrom?: string;
@@ -12,10 +13,10 @@ export type TransactionFilter = {
 
 function buildWhereClause(filter?: TransactionFilter): {
   clause: string;
-  values: unknown[];
+  values: SQLiteValue[];
 } {
   const conditions: string[] = [];
-  const values: unknown[] = [];
+  const values: SQLiteValue[] = [];
 
   if (!filter) return { clause: '', values };
 
@@ -46,17 +47,17 @@ function buildWhereClause(filter?: TransactionFilter): {
 export async function getAll(
   filter?: TransactionFilter,
 ): Promise<PaginatedResult<Transaction>> {
-  const db = await getDatabase();
+  const db = getDatabase();
   const { clause, values } = buildWhereClause(filter);
 
-  const [countResult] = await db.executeSql(
+  const { results: countResults } = db.execute(
     `SELECT COUNT(*) as total FROM transactions ${clause}`,
     values,
   );
-  const total = countResult.rows.item(0).total;
+  const total = Number(countResults[0].total);
 
   let sql = `SELECT * FROM transactions ${clause} ORDER BY created_at DESC`;
-  const queryValues: unknown[] = [...values];
+  const queryValues: SQLiteValue[] = [...values];
 
   if (filter?.page && filter?.perPage) {
     const offset = (filter.page - 1) * filter.perPage;
@@ -64,42 +65,32 @@ export async function getAll(
     queryValues.push(filter.perPage, offset);
   }
 
-  const [results] = await db.executeSql(sql, queryValues);
-  const data: Transaction[] = [];
-  for (let i = 0; i < results.rows.length; i++) {
-    data.push(results.rows.item(i));
-  }
-  return { data, total };
+  const { results } = db.execute(sql, queryValues);
+  return { data: results as unknown as Transaction[], total };
 }
 
 export async function getById(id: string): Promise<Transaction | null> {
-  const db = await getDatabase();
-  const [results] = await db.executeSql(
-    'SELECT * FROM transactions WHERE id = ?',
-    [id],
-  );
-  if (results.rows.length === 0) return null;
-  return results.rows.item(0);
+  const db = getDatabase();
+  const { results } = db.execute('SELECT * FROM transactions WHERE id = ?', [id]);
+  if (results.length === 0) return null;
+  return results[0] as unknown as Transaction;
 }
 
 export async function store(
   data: Omit<Transaction, 'id' | 'created_at'>,
 ): Promise<Transaction> {
-  const db = await getDatabase();
+  const db = getDatabase();
   const id = generateId();
-  await db.executeSql(
+  db.execute(
     `INSERT INTO transactions (id, total_sales, total_purchases, net_amount, total_paid)
      VALUES (?, ?, ?, ?, ?)`,
     [id, data.total_sales, data.total_purchases, data.net_amount, data.total_paid],
   );
-  const [result] = await db.executeSql(
-    'SELECT * FROM transactions WHERE id = ?',
-    [id],
-  );
-  return result.rows.item(0);
+  const { results } = db.execute('SELECT * FROM transactions WHERE id = ?', [id]);
+  return results[0] as unknown as Transaction;
 }
 
 export async function remove(id: string): Promise<void> {
-  const db = await getDatabase();
-  await db.executeSql('DELETE FROM transactions WHERE id = ?', [id]);
+  const db = getDatabase();
+  db.execute('DELETE FROM transactions WHERE id = ?', [id]);
 }

@@ -14,9 +14,8 @@ function DatabaseInitializer({ children }: PropsWithChildren) {
   const setIsDatabaseReady = useSetAtom(isDatabaseReadyAtom);
 
   useEffect(() => {
-    getDatabase()
-      .then(() => setIsDatabaseReady(true))
-      .catch(console.error);
+    getDatabase();
+    setIsDatabaseReady(true);
   }, [setIsDatabaseReady]);
 
   return <>{children}</>;
