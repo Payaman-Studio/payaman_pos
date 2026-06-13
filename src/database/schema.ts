@@ -5,14 +5,17 @@ export const CREATE_TABLES = `
     name VARCHAR(255) NOT NULL,
     cost_price INTEGER NOT NULL,
     selling_price INTEGER NOT NULL,
-    stock INTEGER NOT NULL DEFAULT 0
+    stock INTEGER NOT NULL DEFAULT 0,
+    category VARCHAR(100)
   );
 
   CREATE TABLE IF NOT EXISTS commodities (
     id VARCHAR(36) PRIMARY KEY NOT NULL,
+    barcode VARCHAR(50) UNIQUE,
     name VARCHAR(255) NOT NULL,
     default_price INTEGER NOT NULL,
-    stock DECIMAL(10,2) NOT NULL DEFAULT 0.00
+    stock DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    category VARCHAR(100)
   );
 
   CREATE TABLE IF NOT EXISTS transactions (

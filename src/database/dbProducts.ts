@@ -7,6 +7,7 @@ export type ProductFilter = {
   minStock?: number;
   maxStock?: number;
   lowStock?: boolean;
+  category?: string;
   page?: number;
   perPage?: number;
 };
@@ -38,6 +39,11 @@ function buildWhereClause(filter?: ProductFilter): {
 
   if (filter.lowStock) {
     conditions.push('stock = 0');
+  }
+
+  if (filter.category) {
+    conditions.push('category = ?');
+    values.push(filter.category);
   }
 
   const clause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
@@ -80,8 +86,8 @@ export async function store(data: Omit<Product, 'id'>): Promise<Product> {
   const db = getDatabase();
   const id = generateId();
   db.execute(
-    'INSERT INTO products (id, barcode, name, cost_price, selling_price, stock) VALUES (?, ?, ?, ?, ?, ?)',
-    [id, data.barcode, data.name, data.cost_price, data.selling_price, data.stock],
+    'INSERT INTO products (id, barcode, name, cost_price, selling_price, stock, category) VALUES (?, ?, ?, ?, ?, ?, ?)',
+    [id, data.barcode, data.name, data.cost_price, data.selling_price, data.stock, data.category],
   );
   return { id, ...data };
 }
@@ -113,6 +119,10 @@ export async function update(
   if (data.stock !== undefined) {
     fields.push('stock = ?');
     values.push(data.stock);
+  }
+  if (data.category !== undefined) {
+    fields.push('category = ?');
+    values.push(data.category);
   }
 
   if (fields.length === 0) return;

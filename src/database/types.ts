@@ -5,13 +5,16 @@ export interface Product {
   cost_price: number;
   selling_price: number;
   stock: number;
+  category: string | null;
 }
 
 export interface Commodity {
   id: string;
+  barcode: string | null;
   name: string;
   default_price: number;
   stock: number;
+  category: string | null;
 }
 
 export interface Transaction {

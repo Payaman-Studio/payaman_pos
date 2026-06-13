@@ -1,6 +1,6 @@
 import { PropsWithChildren, useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
-import { PaperProvider } from 'react-native-paper';
+import { PaperProvider, MD3LightTheme } from 'react-native-paper';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useSetAtom } from 'jotai';
 
@@ -9,6 +9,10 @@ import { isDatabaseReadyAtom } from '../store';
 import AppNavigator from '../navigation/AppNavigator';
 
 const queryClient = new QueryClient();
+
+const theme = {
+  ...MD3LightTheme,
+};
 
 function DatabaseInitializer({ children }: PropsWithChildren) {
   const setIsDatabaseReady = useSetAtom(isDatabaseReadyAtom);
@@ -24,7 +28,7 @@ function DatabaseInitializer({ children }: PropsWithChildren) {
 function AppProviders() {
   return (
     <QueryClientProvider client={queryClient}>
-      <PaperProvider>
+      <PaperProvider theme={theme}>
         <DatabaseInitializer>
           <NavigationContainer>
             <AppNavigator />

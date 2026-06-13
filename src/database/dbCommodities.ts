@@ -6,6 +6,7 @@ export type CommodityFilter = {
   search?: string;
   minPrice?: number;
   maxPrice?: number;
+  category?: string;
   page?: number;
   perPage?: number;
 };
@@ -32,6 +33,11 @@ function buildWhereClause(filter?: CommodityFilter): {
   if (filter.maxPrice !== undefined) {
     conditions.push('default_price <= ?');
     values.push(filter.maxPrice);
+  }
+
+  if (filter.category) {
+    conditions.push('category = ?');
+    values.push(filter.category);
   }
 
   const clause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
@@ -74,8 +80,8 @@ export async function store(data: Omit<Commodity, 'id'>): Promise<Commodity> {
   const db = getDatabase();
   const id = generateId();
   db.execute(
-    'INSERT INTO commodities (id, name, default_price, stock) VALUES (?, ?, ?, ?)',
-    [id, data.name, data.default_price, data.stock],
+    'INSERT INTO commodities (id, barcode, name, default_price, stock, category) VALUES (?, ?, ?, ?, ?, ?)',
+    [id, data.barcode, data.name, data.default_price, data.stock, data.category],
   );
   return { id, ...data };
 }
@@ -99,6 +105,14 @@ export async function update(
   if (data.stock !== undefined) {
     fields.push('stock = ?');
     values.push(data.stock);
+  }
+  if (data.barcode !== undefined) {
+    fields.push('barcode = ?');
+    values.push(data.barcode);
+  }
+  if (data.category !== undefined) {
+    fields.push('category = ?');
+    values.push(data.category);
   }
 
   if (fields.length === 0) return;
