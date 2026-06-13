@@ -6,6 +6,7 @@ export interface Product {
   selling_price: number;
   stock: number;
   category: string | null;
+  min_stock: number;
 }
 
 export interface Commodity {
@@ -15,6 +16,7 @@ export interface Commodity {
   default_price: number;
   stock: number;
   category: string | null;
+  min_stock: number;
 }
 
 export interface Transaction {

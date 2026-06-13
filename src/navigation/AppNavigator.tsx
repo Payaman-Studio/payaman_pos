@@ -1,13 +1,16 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useTheme } from 'react-native-paper';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 import CashierScreen from '../screens/CashierScreen';
 import InventoryScreen from '../screens/InventoryScreen';
 import ReportScreen from '../screens/ReportScreen';
-import { RootTabParamList } from './types';
+import ProductFormScreen from '../screens/ProductFormScreen';
+import { RootTabParamList, RootStackParamList } from './types';
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
+const Stack = createNativeStackNavigator<RootStackParamList>();
 
 const cashierIcon = ({ color, size }: { color: string; size: number }) => (
   <Icon name="cash-register" color={color} size={size} />
@@ -21,7 +24,7 @@ const reportIcon = ({ color, size }: { color: string; size: number }) => (
   <Icon name="chart-bar" color={color} size={size} />
 );
 
-function AppNavigator() {
+function TabNavigator() {
   const theme = useTheme();
 
   return (
@@ -46,7 +49,7 @@ function AppNavigator() {
         name="Cashier"
         component={CashierScreen}
         options={{
-          tabBarLabel: 'Cashier',
+          tabBarLabel: 'Kasir',
           tabBarIcon: cashierIcon,
         }}
       />
@@ -54,7 +57,7 @@ function AppNavigator() {
         name="Inventory"
         component={InventoryScreen}
         options={{
-          tabBarLabel: 'Inventory',
+          tabBarLabel: 'Inventori',
           tabBarIcon: inventoryIcon,
         }}
       />
@@ -62,11 +65,24 @@ function AppNavigator() {
         name="Report"
         component={ReportScreen}
         options={{
-          tabBarLabel: 'Report',
+          tabBarLabel: 'Laporan',
           tabBarIcon: reportIcon,
         }}
       />
     </Tab.Navigator>
+  );
+}
+
+function AppNavigator() {
+  return (
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: false,
+      }}
+    >
+      <Stack.Screen name="MainTabs" component={TabNavigator} />
+      <Stack.Screen name="ProductForm" component={ProductFormScreen} />
+    </Stack.Navigator>
   );
 }
 

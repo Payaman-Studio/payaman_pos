@@ -23,6 +23,7 @@ function seedDatabase(dbConn: NitroSQLiteConnection) {
           selling_price: 35000,
           stock: 2,
           category: 'Sembako',
+          min_stock: 5,
         },
         {
           id: uuidv4(),
@@ -32,6 +33,7 @@ function seedDatabase(dbConn: NitroSQLiteConnection) {
           selling_price: 78000,
           stock: 15,
           category: 'Sembako',
+          min_stock: 5,
         },
         {
           id: uuidv4(),
@@ -41,6 +43,7 @@ function seedDatabase(dbConn: NitroSQLiteConnection) {
           selling_price: 16000,
           stock: 1,
           category: 'Sembako',
+          min_stock: 5,
         },
         {
           id: uuidv4(),
@@ -50,13 +53,14 @@ function seedDatabase(dbConn: NitroSQLiteConnection) {
           selling_price: 12500,
           stock: 42,
           category: 'Camilan',
+          min_stock: 5,
         },
       ];
 
       for (const p of dummyProducts) {
         dbConn.execute(
-          'INSERT INTO products (id, barcode, name, cost_price, selling_price, stock, category) VALUES (?, ?, ?, ?, ?, ?, ?)',
-          [p.id, p.barcode, p.name, p.cost_price, p.selling_price, p.stock, p.category],
+          'INSERT INTO products (id, barcode, name, cost_price, selling_price, stock, category, min_stock) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+          [p.id, p.barcode, p.name, p.cost_price, p.selling_price, p.stock, p.category, p.min_stock],
         );
       }
 
@@ -68,6 +72,7 @@ function seedDatabase(dbConn: NitroSQLiteConnection) {
           default_price: 28000,
           stock: 1.5,
           category: 'Sembako',
+          min_stock: 2,
         },
         {
           id: uuidv4(),
@@ -76,13 +81,14 @@ function seedDatabase(dbConn: NitroSQLiteConnection) {
           default_price: 3500,
           stock: 10.0,
           category: 'Sayuran',
+          min_stock: 5,
         },
       ];
 
       for (const c of dummyCommodities) {
         dbConn.execute(
-          'INSERT INTO commodities (id, barcode, name, default_price, stock, category) VALUES (?, ?, ?, ?, ?, ?)',
-          [c.id, c.barcode, c.name, c.default_price, c.stock, c.category],
+          'INSERT INTO commodities (id, barcode, name, default_price, stock, category, min_stock) VALUES (?, ?, ?, ?, ?, ?, ?)',
+          [c.id, c.barcode, c.name, c.default_price, c.stock, c.category, c.min_stock],
         );
       }
     }
@@ -109,6 +115,16 @@ export function getDatabase(): NitroSQLiteConnection {
   }
   try {
     db.execute('ALTER TABLE commodities ADD COLUMN category VARCHAR(100)');
+  } catch {
+    // Abaikan jika kolom sudah ada
+  }
+  try {
+    db.execute('ALTER TABLE products ADD COLUMN min_stock INTEGER NOT NULL DEFAULT 5');
+  } catch {
+    // Abaikan jika kolom sudah ada
+  }
+  try {
+    db.execute('ALTER TABLE commodities ADD COLUMN min_stock DECIMAL(10,2) NOT NULL DEFAULT 5.00');
   } catch {
     // Abaikan jika kolom sudah ada
   }

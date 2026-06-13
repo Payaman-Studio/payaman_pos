@@ -80,8 +80,8 @@ export async function store(data: Omit<Commodity, 'id'>): Promise<Commodity> {
   const db = getDatabase();
   const id = generateId();
   db.execute(
-    'INSERT INTO commodities (id, barcode, name, default_price, stock, category) VALUES (?, ?, ?, ?, ?, ?)',
-    [id, data.barcode, data.name, data.default_price, data.stock, data.category],
+    'INSERT INTO commodities (id, barcode, name, default_price, stock, category, min_stock) VALUES (?, ?, ?, ?, ?, ?, ?)',
+    [id, data.barcode, data.name, data.default_price, data.stock, data.category, data.min_stock],
   );
   return { id, ...data };
 }
@@ -113,6 +113,10 @@ export async function update(
   if (data.category !== undefined) {
     fields.push('category = ?');
     values.push(data.category);
+  }
+  if (data.min_stock !== undefined) {
+    fields.push('min_stock = ?');
+    values.push(data.min_stock);
   }
 
   if (fields.length === 0) return;

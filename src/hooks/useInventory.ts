@@ -14,6 +14,7 @@ export interface InventoryItem {
   category: string | null;
   unit: string;
   isLowStock: boolean;
+  minStock: number;
 }
 
 export interface UseInventoryFilters {
@@ -21,8 +22,6 @@ export interface UseInventoryFilters {
   category: string;
   lowStockOnly: boolean;
 }
-
-const LOW_STOCK_THRESHOLD = 2.0;
 
 function getUnit(name: string, type: 'PRODUCT' | 'COMMODITY'): string {
   if (type === 'PRODUCT') {
@@ -38,7 +37,7 @@ function getUnit(name: string, type: 'PRODUCT' | 'COMMODITY'): string {
   return 'Pcs';
 }
 
-export function useInventory(filters: UseInventoryFilters) {
+export function useInventory(filters?: UseInventoryFilters) {
   const queryClient = useQueryClient();
 
   const productsQuery = useQuery({
@@ -74,7 +73,8 @@ export function useInventory(filters: UseInventoryFilters) {
     stock: p.stock,
     category: p.category,
     unit: getUnit(p.name, 'PRODUCT'),
-    isLowStock: p.stock <= LOW_STOCK_THRESHOLD,
+    minStock: p.min_stock,
+    isLowStock: p.stock <= p.min_stock,
   }));
 
   // Konversi komoditas ke item inventori terpadu
@@ -87,7 +87,8 @@ export function useInventory(filters: UseInventoryFilters) {
     stock: c.stock,
     category: c.category,
     unit: getUnit(c.name, 'COMMODITY'),
-    isLowStock: c.stock <= LOW_STOCK_THRESHOLD,
+    minStock: c.min_stock,
+    isLowStock: c.stock <= c.min_stock,
   }));
 
   // Gabungkan semua item
@@ -96,28 +97,31 @@ export function useInventory(filters: UseInventoryFilters) {
   // Hitung jumlah item dengan stok rendah
   const lowStockCount = allItems.filter(item => item.isLowStock).length;
 
-  // Lakukan filter di memori demi performa pencarian instan & responsif
-  const filteredItems = allItems.filter(item => {
-    // Filter pencarian
-    if (filters.search) {
-      const searchLower = filters.search.toLowerCase();
-      const matchName = item.name.toLowerCase().includes(searchLower);
-      const matchBarcode = item.barcode ? item.barcode.toLowerCase().includes(searchLower) : false;
-      if (!matchName && !matchBarcode) return false;
-    }
+  // Lakukan filter jika parameter filters dilewatkan
+  let filteredItems = allItems;
+  if (filters) {
+    filteredItems = allItems.filter(item => {
+      // Filter pencarian
+      if (filters.search) {
+        const searchLower = filters.search.toLowerCase();
+        const matchName = item.name.toLowerCase().includes(searchLower);
+        const matchBarcode = item.barcode ? item.barcode.toLowerCase().includes(searchLower) : false;
+        if (!matchName && !matchBarcode) return false;
+      }
 
-    // Filter kategori
-    if (filters.category && filters.category !== 'Semua') {
-      if (item.category !== filters.category) return false;
-    }
+      // Filter kategori
+      if (filters.category && filters.category !== 'Semua') {
+        if (item.category !== filters.category) return false;
+      }
 
-    // Filter stok rendah
-    if (filters.lowStockOnly) {
-      if (!item.isLowStock) return false;
-    }
+      // Filter stok rendah
+      if (filters.lowStockOnly) {
+        if (!item.isLowStock) return false;
+      }
 
-    return true;
-  });
+      return true;
+    });
+  }
 
   // Urutkan item: stok rendah terlebih dahulu, kemudian nama ASC
   const sortedItems = filteredItems.sort((a, b) => {
@@ -135,6 +139,11 @@ export function useInventory(filters: UseInventoryFilters) {
     )
   );
   const categories = ['Semua', ...uniqueCategories];
+
+  // Ambil single item
+  const getItem = (id: string, type: 'PRODUCT' | 'COMMODITY'): InventoryItem | undefined => {
+    return allItems.find(item => item.id === id && item.type === type);
+  };
 
   // Tambah produk mutasi
   const addProductMutation = useMutation({
@@ -156,6 +165,46 @@ export function useInventory(filters: UseInventoryFilters) {
     },
   });
 
+  // Edit produk mutasi
+  const updateProductMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: Partial<Omit<Product, 'id'>> }) => {
+      return await dbProducts.update(id, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+    },
+  });
+
+  // Edit komoditas mutasi
+  const updateCommodityMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: Partial<Omit<Commodity, 'id'>> }) => {
+      return await dbCommodities.update(id, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['commodities'] });
+    },
+  });
+
+  // Hapus produk mutasi
+  const deleteProductMutation = useMutation({
+    mutationFn: async (id: string) => {
+      return await dbProducts.remove(id);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+    },
+  });
+
+  // Hapus komoditas mutasi
+  const deleteCommodityMutation = useMutation({
+    mutationFn: async (id: string) => {
+      return await dbCommodities.remove(id);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['commodities'] });
+    },
+  });
+
   const refetch = () => {
     productsQuery.refetch();
     commoditiesQuery.refetch();
@@ -168,7 +217,12 @@ export function useInventory(filters: UseInventoryFilters) {
     isLoading,
     error,
     refetch,
+    getItem,
     addProduct: addProductMutation.mutateAsync,
     addCommodity: addCommodityMutation.mutateAsync,
+    updateProduct: updateProductMutation.mutateAsync,
+    updateCommodity: updateCommodityMutation.mutateAsync,
+    deleteProduct: deleteProductMutation.mutateAsync,
+    deleteCommodity: deleteCommodityMutation.mutateAsync,
   };
 }
