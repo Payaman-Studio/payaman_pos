@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   ScrollView,
   StatusBar,
+  Alert,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
@@ -24,7 +25,17 @@ import { useInventory, InventoryItem } from '../hooks/useInventory';
 import { RootStackParamList } from '../navigation/types';
 
 // Komponen pembantu untuk menampilkan thumbnail produk/komoditas secara visual premium
-function ProductThumbnail({ name, category, type, photo }: { name: string; category: string | null; type: 'PRODUCT' | 'COMMODITY'; photo?: string | null }) {
+function ProductThumbnail({
+  name,
+  category,
+  type,
+  photo,
+}: {
+  name: string;
+  category: string | null;
+  type: 'PRODUCT' | 'COMMODITY';
+  photo?: string | null;
+}) {
   let backgroundColor = '#F3F4F6';
   let iconName = 'package-variant';
   let iconColor = '#9CA3AF';
@@ -32,7 +43,11 @@ function ProductThumbnail({ name, category, type, photo }: { name: string; categ
   const lowerName = name.toLowerCase();
   const lowerCat = category?.toLowerCase() || '';
 
-  if (lowerCat.includes('sayur') || lowerName.includes('bayam') || lowerName.includes('kangkung')) {
+  if (
+    lowerCat.includes('sayur') ||
+    lowerName.includes('bayam') ||
+    lowerName.includes('kangkung')
+  ) {
     backgroundColor = '#DCFCE7';
     iconName = 'leaf';
     iconColor = '#16A34A';
@@ -52,7 +67,11 @@ function ProductThumbnail({ name, category, type, photo }: { name: string; categ
     backgroundColor = '#E0F2FE';
     iconName = 'grain';
     iconColor = '#0284C7';
-  } else if (lowerCat.includes('camilan') || lowerName.includes('krupuk') || lowerName.includes('keripik')) {
+  } else if (
+    lowerCat.includes('camilan') ||
+    lowerName.includes('krupuk') ||
+    lowerName.includes('keripik')
+  ) {
     backgroundColor = '#FCE7F3';
     iconName = 'cookie';
     iconColor = '#DB2777';
@@ -63,9 +82,7 @@ function ProductThumbnail({ name, category, type, photo }: { name: string; categ
   }
 
   if (photo) {
-    return (
-      <Image source={{ uri: photo }} style={styles.thumbnail} />
-    );
+    return <Image source={{ uri: photo }} style={styles.thumbnail} />;
   }
 
   return (
@@ -76,7 +93,8 @@ function ProductThumbnail({ name, category, type, photo }: { name: string; categ
 }
 
 function InventoryScreen() {
-  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const navigation =
+    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const insets = useSafeAreaInsets();
 
   // States untuk filter
@@ -89,6 +107,8 @@ function InventoryScreen() {
     lowStockCount,
     categories,
     isLoading,
+    deleteProduct,
+    deleteCommodity,
   } = useInventory({
     search,
     category: selectedCategory,
@@ -98,6 +118,27 @@ function InventoryScreen() {
   // Format ke mata uang Rupiah
   const formatRupiah = (num: number) => {
     return 'Rp ' + num.toLocaleString('id-ID');
+  };
+
+  const handleDelete = (item: InventoryItem) => {
+    Alert.alert('Hapus Item', `Yakin ingin menghapus "${item.name}"?`, [
+      { text: 'Batal', style: 'cancel' },
+      {
+        text: 'Hapus',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            if (item.type === 'PRODUCT') {
+              await deleteProduct(item.id);
+            } else {
+              await deleteCommodity(item.id);
+            }
+          } catch {
+            Alert.alert('Gagal', 'Gagal menghapus item');
+          }
+        },
+      },
+    ]);
   };
 
   // Render Item untuk FlatList
@@ -114,10 +155,19 @@ function InventoryScreen() {
         }
       >
         <View style={styles.cardContent}>
-          <ProductThumbnail name={item.name} category={item.category} type={item.type} photo={item.photo} />
-          
+          <ProductThumbnail
+            name={item.name}
+            category={item.category}
+            type={item.type}
+            photo={item.photo}
+          />
+
           <View style={styles.detailsContainer}>
-            <Text variant="titleMedium" style={styles.itemName} numberOfLines={1}>
+            <Text
+              variant="titleMedium"
+              style={styles.itemName}
+              numberOfLines={1}
+            >
               {item.name}
             </Text>
             {item.barcode && (
@@ -125,16 +175,23 @@ function InventoryScreen() {
                 SKU: {item.barcode}
               </Text>
             )}
-            
+
             <View style={styles.stockContainer}>
               {item.isLowStock && (
-                <Icon name="alert-circle-outline" size={14} color="#DC2626" style={styles.alertIcon} />
+                <Icon
+                  name="alert-circle-outline"
+                  size={14}
+                  color="#DC2626"
+                  style={styles.alertIcon}
+                />
               )}
               <Text
                 variant="bodyMedium"
                 style={[
                   styles.stockText,
-                  item.isLowStock ? styles.lowStockText : styles.normalStockText,
+                  item.isLowStock
+                    ? styles.lowStockText
+                    : styles.normalStockText,
                 ]}
               >
                 {item.stock} {item.unit}
@@ -150,6 +207,15 @@ function InventoryScreen() {
               {item.type === 'PRODUCT' ? 'per unit' : `per ${item.unit}`}
             </Text>
           </View>
+
+          <TouchableOpacity
+            activeOpacity={0.6}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            onPress={() => handleDelete(item)}
+            style={styles.deleteButton}
+          >
+            <Icon name="delete-outline" size={20} color="#9CA3AF" />
+          </TouchableOpacity>
         </View>
       </Card>
     );
@@ -158,7 +224,7 @@ function InventoryScreen() {
   return (
     <View style={[styles.safeArea, { paddingTop: insets.top }]}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
-      
+
       {/* Custom Header Toko */}
       <View style={styles.headerBar}>
         <Icon name="store" size={22} color="#000000" />
@@ -166,11 +232,6 @@ function InventoryScreen() {
       </View>
 
       <View style={styles.container}>
-        {/* Judul Halaman */}
-        <Text variant="headlineLarge" style={styles.pageTitle}>
-          Inventori
-        </Text>
-
         {/* Search Input */}
         <TextInput
           placeholder="Cari produk..."
@@ -191,7 +252,7 @@ function InventoryScreen() {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.categoriesContainer}
           >
-            {categories.map((cat) => {
+            {categories.map(cat => {
               const isActive = selectedCategory === cat;
               return (
                 <TouchableOpacity
@@ -200,13 +261,17 @@ function InventoryScreen() {
                   onPress={() => setSelectedCategory(cat)}
                   style={[
                     styles.categoryPill,
-                    isActive ? styles.categoryPillActive : styles.categoryPillInactive,
+                    isActive
+                      ? styles.categoryPillActive
+                      : styles.categoryPillInactive,
                   ]}
                 >
                   <Text
                     style={[
                       styles.categoryText,
-                      isActive ? styles.categoryTextActive : styles.categoryTextInactive,
+                      isActive
+                        ? styles.categoryTextActive
+                        : styles.categoryTextInactive,
                     ]}
                   >
                     {cat}
@@ -221,7 +286,12 @@ function InventoryScreen() {
         {lowStockCount > 0 && (
           <View style={styles.alertBanner}>
             <View style={styles.alertBannerLeft}>
-              <Icon name="alert" size={20} color="#991B1B" style={styles.alertBannerIcon} />
+              <Icon
+                name="alert"
+                size={20}
+                color="#991B1B"
+                style={styles.alertBannerIcon}
+              />
               <Text style={styles.alertBannerText}>
                 {lowStockCount} items stok rendah
               </Text>
@@ -251,7 +321,7 @@ function InventoryScreen() {
           <FlatList
             data={inventoryItems}
             renderItem={renderItem}
-            keyExtractor={(item) => item.id}
+            keyExtractor={item => item.id}
             contentContainerStyle={styles.listContainer}
             showsVerticalScrollIndicator={false}
           />
@@ -425,6 +495,10 @@ const styles = StyleSheet.create({
   priceContainer: {
     alignItems: 'flex-end',
     justifyContent: 'center',
+  },
+  deleteButton: {
+    marginLeft: 8,
+    padding: 4,
   },
   priceText: {
     fontWeight: '800',

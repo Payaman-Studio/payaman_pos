@@ -8,6 +8,7 @@ import {
   StatusBar,
   KeyboardAvoidingView,
   Platform,
+  Alert,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
@@ -50,6 +51,8 @@ function ProductFormScreen() {
     addCommodity,
     updateProduct,
     updateCommodity,
+    deleteProduct,
+    deleteCommodity,
     categories,
     refetch,
   } = useInventory();
@@ -166,6 +169,35 @@ function ProductFormScreen() {
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleDelete = () => {
+    if (!itemId) return;
+
+    Alert.alert(
+      'Hapus Item',
+      `Yakin ingin menghapus "${name.trim() || 'item ini'}"?`,
+      [
+        { text: 'Batal', style: 'cancel' },
+        {
+          text: 'Hapus',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              if (itemType === 'COMMODITY') {
+                await deleteCommodity(itemId);
+              } else {
+                await deleteProduct(itemId);
+              }
+              refetch();
+              navigation.goBack();
+            } catch {
+              Alert.alert('Gagal', 'Gagal menghapus item');
+            }
+          },
+        },
+      ],
+    );
   };
 
   const handlePickPhoto = () => {
@@ -468,6 +500,17 @@ function ProductFormScreen() {
 
         {/* Sticky Simpan Button di bagian bawah */}
         <View style={styles.footerContainer}>
+          {isEditMode && (
+            <Button
+              mode="outlined"
+              onPress={handleDelete}
+              style={styles.deleteButton}
+              labelStyle={styles.deleteButtonLabel}
+              textColor="#DC2626"
+            >
+              Hapus
+            </Button>
+          )}
           <Button
             mode="contained"
             onPress={handleSave}
@@ -671,15 +714,30 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderTopWidth: 0.5,
     borderTopColor: '#E5E7EB',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
   },
   saveButton: {
     backgroundColor: '#000000',
     borderRadius: 8,
     height: 48,
     justifyContent: 'center',
+    flex: 1,
   },
   saveButtonLabel: {
     color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '800',
+  },
+  deleteButton: {
+    borderColor: '#DC2626',
+    borderRadius: 8,
+    height: 48,
+    justifyContent: 'center',
+  },
+  deleteButtonLabel: {
+    color: '#DC2626',
     fontSize: 15,
     fontWeight: '800',
   },
