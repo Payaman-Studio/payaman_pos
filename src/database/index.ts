@@ -1,19 +1,56 @@
+import 'react-native-get-random-values';
 import { open } from 'react-native-nitro-sqlite';
 import { v4 as uuidv4 } from 'uuid';
 import { CREATE_TABLES } from './schema';
 import type { NitroSQLiteConnection } from 'react-native-nitro-sqlite';
 
+const SCHEMA_VERSION = 2;
+
 let db: NitroSQLiteConnection | null = null;
+
+function migrate(dbConn: NitroSQLiteConnection) {
+  const { results } = dbConn.execute('PRAGMA user_version');
+  const version = Number(results[0]?.user_version) || 0;
+
+  if (version >= SCHEMA_VERSION) return;
+
+  const migrations: string[] = [];
+
+  if (version < 1) {
+    migrations.push(
+      'ALTER TABLE products ADD COLUMN category VARCHAR(100)',
+      'ALTER TABLE commodities ADD COLUMN barcode VARCHAR(50)',
+      'ALTER TABLE commodities ADD COLUMN category VARCHAR(100)',
+      'ALTER TABLE products ADD COLUMN min_stock INTEGER NOT NULL DEFAULT 5',
+      'ALTER TABLE commodities ADD COLUMN min_stock DECIMAL(10,2) NOT NULL DEFAULT 5.00',
+    );
+  }
+
+  if (version < 2) {
+    migrations.push(
+      'ALTER TABLE products ADD COLUMN photo VARCHAR(500)',
+    );
+  }
+
+  for (const sql of migrations) {
+    try {
+      dbConn.execute(sql);
+    } catch {
+      // Kolom mungkin sudah ada dari versi sebelumnya — skip
+    }
+  }
+
+  dbConn.execute(`PRAGMA user_version = ${SCHEMA_VERSION}`);
+}
 
 function seedDatabase(dbConn: NitroSQLiteConnection) {
   try {
-    const { results: productsCount } = dbConn.execute('SELECT COUNT(*) as total FROM products');
-    const { results: commoditiesCount } = dbConn.execute('SELECT COUNT(*) as total FROM commodities');
+    const { results: productsResult } = dbConn.execute('SELECT COUNT(*) as total FROM products');
+    const { results: commoditiesResult } = dbConn.execute('SELECT COUNT(*) as total FROM commodities');
+    const productsCount = Number(productsResult[0]?.total) || 0;
+    const commoditiesCount = Number(commoditiesResult[0]?.total) || 0;
 
-    const totalProducts = Number(productsCount[0].total);
-    const totalCommodities = Number(commoditiesCount[0].total);
-
-    if (totalProducts === 0 && totalCommodities === 0) {
+    if (productsCount === 0 && commoditiesCount === 0) {
       const dummyProducts = [
         {
           id: uuidv4(),
@@ -102,33 +139,7 @@ export function getDatabase(): NitroSQLiteConnection {
 
   db = open({ name: 'waroeng.db' });
   db.execute(CREATE_TABLES);
-
-  try {
-    db.execute('ALTER TABLE products ADD COLUMN category VARCHAR(100)');
-  } catch {
-    // Abaikan jika kolom sudah ada
-  }
-  try {
-    db.execute('ALTER TABLE commodities ADD COLUMN barcode VARCHAR(50)');
-  } catch {
-    // Abaikan jika kolom sudah ada
-  }
-  try {
-    db.execute('ALTER TABLE commodities ADD COLUMN category VARCHAR(100)');
-  } catch {
-    // Abaikan jika kolom sudah ada
-  }
-  try {
-    db.execute('ALTER TABLE products ADD COLUMN min_stock INTEGER NOT NULL DEFAULT 5');
-  } catch {
-    // Abaikan jika kolom sudah ada
-  }
-  try {
-    db.execute('ALTER TABLE commodities ADD COLUMN min_stock DECIMAL(10,2) NOT NULL DEFAULT 5.00');
-  } catch {
-    // Abaikan jika kolom sudah ada
-  }
-
+  migrate(db);
   seedDatabase(db);
 
   return db;

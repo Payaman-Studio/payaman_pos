@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import {
   View,
+  Image,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
@@ -16,10 +17,13 @@ import {
   Button,
   Menu,
   IconButton,
+  Snackbar,
 } from 'react-native-paper';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+
+import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 
 import { useInventory } from '../hooks/useInventory';
 import { RootStackParamList } from '../navigation/types';
@@ -59,9 +63,13 @@ function ProductFormScreen() {
   const [stock, setStock] = useState('0');
   const [minStock, setMinStock] = useState('5');
   const [isCommodity, setIsCommodity] = useState(false);
+  const [photo, setPhoto] = useState<string | null>(null);
 
   // UI States
   const [categoryMenuVisible, setCategoryMenuVisible] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [snackbarVisible, setSnackbarVisible] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
 
   // Load data lama jika dalam mode Edit
   useEffect(() => {
@@ -78,12 +86,17 @@ function ProductFormScreen() {
         if (item.type === 'PRODUCT' && item.costPrice !== undefined) {
           setCostPrice(item.costPrice.toString());
         }
+        if (item.photo) {
+          setPhoto(item.photo);
+        }
       }
     }
   }, [isEditMode, itemId, itemType, getItem]);
 
   const handleSave = async () => {
     if (!name.trim()) return;
+
+    setSaving(true);
 
     const parsedSellingPrice = Number(sellingPrice) || 0;
     const parsedCostPrice = Number(costPrice) || 0;
@@ -95,7 +108,6 @@ function ProductFormScreen() {
     try {
       if (isEditMode && itemId && itemType) {
         if (isCommodity) {
-          // Jika diubah menjadi komoditas atau memang komoditas
           await updateCommodity({
             id: itemId,
             data: {
@@ -108,7 +120,6 @@ function ProductFormScreen() {
             },
           });
         } else {
-          // Jika tipe produk
           await updateProduct({
             id: itemId,
             data: {
@@ -119,11 +130,11 @@ function ProductFormScreen() {
               stock: parsedStock,
               category: finalCategory,
               min_stock: parsedMinStock,
+              photo,
             },
           });
         }
       } else {
-        // Mode Tambah Baru
         if (isCommodity) {
           await addCommodity({
             barcode: finalBarcode,
@@ -142,14 +153,39 @@ function ProductFormScreen() {
             stock: parsedStock,
             category: finalCategory,
             min_stock: parsedMinStock,
+            photo,
           });
         }
       }
       refetch();
       navigation.goBack();
-    } catch {
-      // Tangani error secara aman
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Unknown error';
+      setSnackbarMessage(`Gagal menyimpan: ${message}`);
+      setSnackbarVisible(true);
+    } finally {
+      setSaving(false);
     }
+  };
+
+  const handlePickPhoto = () => {
+    launchImageLibrary({ mediaType: 'photo', quality: 0.7 }, response => {
+      if (response.assets?.[0]?.uri) {
+        setPhoto(response.assets[0].uri);
+      }
+    });
+  };
+
+  const handleTakePhoto = () => {
+    launchCamera({ mediaType: 'photo', quality: 0.7 }, response => {
+      if (response.assets?.[0]?.uri) {
+        setPhoto(response.assets[0].uri);
+      }
+    });
+  };
+
+  const handleRemovePhoto = () => {
+    setPhoto(null);
   };
 
   // Bersihkan opsi kategori agar tidak duplikat dengan "Semua"
@@ -187,6 +223,59 @@ function ProductFormScreen() {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scrollContent}
         >
+          {/* FOTO PRODUK */}
+          <View style={styles.photoSection}>
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={handlePickPhoto}
+              style={styles.photoPicker}
+            >
+              {photo ? (
+                <Image source={{ uri: photo }} style={styles.photoPreview} />
+              ) : (
+                <View style={styles.photoPlaceholder}>
+                  <Icon name="camera-plus" size={40} color="#9CA3AF" />
+                  <Text style={styles.photoPlaceholderText}>Foto Produk</Text>
+                </View>
+              )}
+            </TouchableOpacity>
+
+            <View style={styles.photoActions}>
+              <Button
+                mode="outlined"
+                onPress={handleTakePhoto}
+                icon="camera"
+                style={styles.photoActionBtn}
+                contentStyle={styles.photoActionContent}
+              >
+                Kamera
+              </Button>
+              <Button
+                mode="outlined"
+                onPress={handlePickPhoto}
+                icon="image"
+                style={styles.photoActionBtn}
+                contentStyle={styles.photoActionContent}
+              >
+                Galeri
+              </Button>
+              {photo && (
+                <Button
+                  mode="text"
+                  onPress={handleRemovePhoto}
+                  icon="close"
+                  textColor="#DC2626"
+                  style={styles.photoActionBtn}
+                  contentStyle={styles.photoActionContent}
+                >
+                  Hapus
+                </Button>
+              )}
+            </View>
+          </View>
+
+          <View style={styles.divider} />
+
           {/* BAGIAN 1: INFORMASI DASAR */}
           <View style={styles.sectionHeader}>
             <Icon name="clipboard-text-outline" size={20} color="#374151" />
@@ -384,16 +473,72 @@ function ProductFormScreen() {
             onPress={handleSave}
             style={styles.saveButton}
             labelStyle={styles.saveButtonLabel}
+            disabled={saving}
+            loading={saving}
           >
-            Simpan Produk
+            {saving ? 'Menyimpan...' : 'Simpan Produk'}
           </Button>
         </View>
       </KeyboardAvoidingView>
+
+      <Snackbar
+        visible={snackbarVisible}
+        onDismiss={() => setSnackbarVisible(false)}
+        duration={4000}
+        action={{
+          label: 'OK',
+          onPress: () => setSnackbarVisible(false),
+        }}
+      >
+        {snackbarMessage}
+      </Snackbar>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  photoSection: {
+    alignItems: 'center',
+    marginBottom: 16,
+    marginTop: 8,
+  },
+  photoPicker: {
+    width: 140,
+    height: 140,
+    borderRadius: 12,
+    overflow: 'hidden',
+    backgroundColor: '#F3F4F6',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    borderStyle: 'dashed',
+  },
+  photoPreview: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
+  },
+  photoPlaceholder: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  photoPlaceholderText: {
+    fontSize: 12,
+    color: '#9CA3AF',
+    marginTop: 4,
+  },
+  photoActions: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 12,
+  },
+  photoActionBtn: {
+    borderColor: '#D1D5DB',
+    borderRadius: 8,
+  },
+  photoActionContent: {
+    height: 36,
+  },
   safeArea: {
     flex: 1,
     backgroundColor: '#FFFFFF',

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import {
   View,
+  Image,
   StyleSheet,
   FlatList,
   TouchableOpacity,
@@ -23,7 +24,7 @@ import { useInventory, InventoryItem } from '../hooks/useInventory';
 import { RootStackParamList } from '../navigation/types';
 
 // Komponen pembantu untuk menampilkan thumbnail produk/komoditas secara visual premium
-function ProductThumbnail({ name, category, type }: { name: string; category: string | null; type: 'PRODUCT' | 'COMMODITY' }) {
+function ProductThumbnail({ name, category, type, photo }: { name: string; category: string | null; type: 'PRODUCT' | 'COMMODITY'; photo?: string | null }) {
   let backgroundColor = '#F3F4F6';
   let iconName = 'package-variant';
   let iconColor = '#9CA3AF';
@@ -32,33 +33,39 @@ function ProductThumbnail({ name, category, type }: { name: string; category: st
   const lowerCat = category?.toLowerCase() || '';
 
   if (lowerCat.includes('sayur') || lowerName.includes('bayam') || lowerName.includes('kangkung')) {
-    backgroundColor = '#DCFCE7'; // Hijau pastel
+    backgroundColor = '#DCFCE7';
     iconName = 'leaf';
     iconColor = '#16A34A';
   } else if (lowerName.includes('minyak') || lowerName.includes('goreng')) {
-    backgroundColor = '#FEF9C3'; // Kuning pastel
+    backgroundColor = '#FEF9C3';
     iconName = 'oil';
     iconColor = '#CA8A04';
   } else if (lowerName.includes('beras') || lowerName.includes('premium')) {
-    backgroundColor = '#F5E6D3'; // Cokelat pastel
+    backgroundColor = '#F5E6D3';
     iconName = 'barley';
     iconColor = '#9A3412';
   } else if (lowerName.includes('telur')) {
-    backgroundColor = '#FFEDD5'; // Oranye pastel
+    backgroundColor = '#FFEDD5';
     iconName = 'egg';
     iconColor = '#EA580C';
   } else if (lowerName.includes('gula')) {
-    backgroundColor = '#E0F2FE'; // Biru muda pastel
+    backgroundColor = '#E0F2FE';
     iconName = 'grain';
     iconColor = '#0284C7';
   } else if (lowerCat.includes('camilan') || lowerName.includes('krupuk') || lowerName.includes('keripik')) {
-    backgroundColor = '#FCE7F3'; // Pink pastel
+    backgroundColor = '#FCE7F3';
     iconName = 'cookie';
     iconColor = '#DB2777';
   } else if (type === 'COMMODITY') {
-    backgroundColor = '#F0FDFA'; // Teal pastel
+    backgroundColor = '#F0FDFA';
     iconName = 'fruit-grapes';
     iconColor = '#0D9488';
+  }
+
+  if (photo) {
+    return (
+      <Image source={{ uri: photo }} style={styles.thumbnail} />
+    );
   }
 
   return (
@@ -107,7 +114,7 @@ function InventoryScreen() {
         }
       >
         <View style={styles.cardContent}>
-          <ProductThumbnail name={item.name} category={item.category} type={item.type} />
+          <ProductThumbnail name={item.name} category={item.category} type={item.type} photo={item.photo} />
           
           <View style={styles.detailsContainer}>
             <Text variant="titleMedium" style={styles.itemName} numberOfLines={1}>

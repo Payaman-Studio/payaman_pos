@@ -86,8 +86,8 @@ export async function store(data: Omit<Product, 'id'>): Promise<Product> {
   const db = getDatabase();
   const id = generateId();
   db.execute(
-    'INSERT INTO products (id, barcode, name, cost_price, selling_price, stock, category, min_stock) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-    [id, data.barcode, data.name, data.cost_price, data.selling_price, data.stock, data.category, data.min_stock],
+    'INSERT INTO products (id, barcode, name, cost_price, selling_price, stock, category, min_stock, photo) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+    [id, data.barcode, data.name, data.cost_price, data.selling_price, data.stock, data.category, data.min_stock, data.photo],
   );
   return { id, ...data };
 }
@@ -127,6 +127,10 @@ export async function update(
   if (data.min_stock !== undefined) {
     fields.push('min_stock = ?');
     values.push(data.min_stock);
+  }
+  if (data.photo !== undefined) {
+    fields.push('photo = ?');
+    values.push(data.photo);
   }
 
   if (fields.length === 0) return;

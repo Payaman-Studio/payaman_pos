@@ -7,6 +7,7 @@ export interface Product {
   stock: number;
   category: string | null;
   min_stock: number;
+  photo: string | null;
 }
 
 export interface Commodity {

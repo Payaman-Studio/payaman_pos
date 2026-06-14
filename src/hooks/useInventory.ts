@@ -15,6 +15,7 @@ export interface InventoryItem {
   unit: string;
   isLowStock: boolean;
   minStock: number;
+  photo: string | null;
 }
 
 export interface UseInventoryFilters {
@@ -75,6 +76,7 @@ export function useInventory(filters?: UseInventoryFilters) {
     unit: getUnit(p.name, 'PRODUCT'),
     minStock: p.min_stock,
     isLowStock: p.stock <= p.min_stock,
+    photo: p.photo,
   }));
 
   // Konversi komoditas ke item inventori terpadu
@@ -89,6 +91,7 @@ export function useInventory(filters?: UseInventoryFilters) {
     unit: getUnit(c.name, 'COMMODITY'),
     minStock: c.min_stock,
     isLowStock: c.stock <= c.min_stock,
+    photo: null,
   }));
 
   // Gabungkan semua item

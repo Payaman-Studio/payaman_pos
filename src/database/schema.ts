@@ -7,7 +7,8 @@ export const CREATE_TABLES = `
     selling_price INTEGER NOT NULL,
     stock INTEGER NOT NULL DEFAULT 0,
     category VARCHAR(100),
-    min_stock INTEGER NOT NULL DEFAULT 5
+    min_stock INTEGER NOT NULL DEFAULT 5,
+    photo VARCHAR(500)
   );
 
   CREATE TABLE IF NOT EXISTS commodities (
