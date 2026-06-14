@@ -5,9 +5,9 @@ import {
   FlatList,
   TouchableOpacity,
   ScrollView,
-  SafeAreaView,
   StatusBar,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   Text,
   TextInput,
@@ -70,6 +70,7 @@ function ProductThumbnail({ name, category, type }: { name: string; category: st
 
 function InventoryScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const insets = useSafeAreaInsets();
 
   // States untuk filter
   const [search, setSearch] = useState('');
@@ -148,7 +149,7 @@ function InventoryScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <View style={[styles.safeArea, { paddingTop: insets.top }]}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
       
       {/* Custom Header Toko */}
@@ -257,7 +258,7 @@ function InventoryScreen() {
           onPress={() => navigation.navigate('ProductForm')}
         />
       </View>
-    </SafeAreaView>
+    </View>
   );
 }
 

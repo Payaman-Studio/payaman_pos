@@ -4,11 +4,11 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  SafeAreaView,
   StatusBar,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   Text,
   TextInput,
@@ -25,18 +25,30 @@ import { useInventory } from '../hooks/useInventory';
 import { RootStackParamList } from '../navigation/types';
 
 type ProductFormScreenRouteProp = RouteProp<RootStackParamList, 'ProductForm'>;
-type ProductFormScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'ProductForm'>;
+type ProductFormScreenNavigationProp = NativeStackNavigationProp<
+  RootStackParamList,
+  'ProductForm'
+>;
 
 function ProductFormScreen() {
   const navigation = useNavigation<ProductFormScreenNavigationProp>();
   const route = useRoute<ProductFormScreenRouteProp>();
-  
+  const insets = useSafeAreaInsets();
+
   const itemId = route.params?.itemId;
   const itemType = route.params?.itemType;
   const isEditMode = !!itemId;
 
   // Custom hook untuk operasi database
-  const { getItem, addProduct, addCommodity, updateProduct, updateCommodity, categories, refetch } = useInventory();
+  const {
+    getItem,
+    addProduct,
+    addCommodity,
+    updateProduct,
+    updateCommodity,
+    categories,
+    refetch,
+  } = useInventory();
 
   // State Form
   const [name, setName] = useState('');
@@ -144,9 +156,14 @@ function ProductFormScreen() {
   const availableCategories = categories.filter(cat => cat !== 'Semua');
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <View
+      style={[
+        styles.safeArea,
+        { paddingTop: insets.top, paddingBottom: insets.bottom },
+      ]}
+    >
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
-      
+
       {/* Header Bar */}
       <View style={styles.headerBar}>
         <IconButton
@@ -201,7 +218,9 @@ function ProductFormScreen() {
               activeOutlineColor="#000000"
               style={styles.textInput}
               contentStyle={styles.textInputContent}
-              right={<TextInput.Icon icon="barcode" color="#000000" size={20} />}
+              right={
+                <TextInput.Icon icon="barcode" color="#000000" size={20} />
+              }
             />
           </View>
 
@@ -216,14 +235,20 @@ function ProductFormScreen() {
                   onPress={() => setCategoryMenuVisible(true)}
                   style={styles.dropdownTrigger}
                 >
-                  <Text style={category ? styles.dropdownText : styles.dropdownPlaceholder}>
+                  <Text
+                    style={
+                      category
+                        ? styles.dropdownText
+                        : styles.dropdownPlaceholder
+                    }
+                  >
                     {category || 'Pilih Kategori'}
                   </Text>
                   <Icon name="chevron-down" size={20} color="#6B7280" />
                 </TouchableOpacity>
               }
             >
-              {availableCategories.map((cat) => (
+              {availableCategories.map(cat => (
                 <Menu.Item
                   key={cat}
                   onPress={() => {
@@ -278,7 +303,9 @@ function ProductFormScreen() {
                 activeOutlineColor="#000000"
                 style={styles.textInput}
                 contentStyle={styles.textInputContent}
-                left={<TextInput.Affix text="Rp " textStyle={styles.affixStyle} />}
+                left={
+                  <TextInput.Affix text="Rp " textStyle={styles.affixStyle} />
+                }
               />
             </View>
           )}
@@ -294,7 +321,9 @@ function ProductFormScreen() {
               activeOutlineColor="#000000"
               style={styles.textInput}
               contentStyle={styles.textInputContent}
-              left={<TextInput.Affix text="Rp " textStyle={styles.affixStyle} />}
+              left={
+                <TextInput.Affix text="Rp " textStyle={styles.affixStyle} />
+              }
             />
           </View>
 
@@ -332,7 +361,12 @@ function ProductFormScreen() {
           {/* Switch Produk Komoditas Warga */}
           <View style={styles.commoditySwitchContainer}>
             <View style={styles.commoditySwitchLeft}>
-              <Icon name="leaf" size={20} color="#16A34A" style={styles.commodityIcon} />
+              <Icon
+                name="leaf"
+                size={20}
+                color="#16A34A"
+                style={styles.commodityIcon}
+              />
               <Text style={styles.commodityText}>Produk Komoditas Warga</Text>
             </View>
             <Switch
@@ -355,7 +389,7 @@ function ProductFormScreen() {
           </Button>
         </View>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </View>
   );
 }
 
