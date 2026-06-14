@@ -1,5 +1,7 @@
+import { Platform } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 import CashierScreen from '../screens/CashierScreen';
@@ -24,6 +26,8 @@ const reportIcon = ({ color, size }: { color: string; size: number }) => (
 );
 
 function TabNavigator() {
+  const insets = useSafeAreaInsets();
+
   return (
     <Tab.Navigator
       screenOptions={{
@@ -35,8 +39,8 @@ function TabNavigator() {
           borderTopColor: '#E5E7EB',
           borderTopWidth: 0.5,
           elevation: 0,
-          height: 60,
-          paddingBottom: 8,
+          height: Platform.OS === 'android' ? 56 + insets.bottom : 60,
+          paddingBottom: Platform.OS === 'android' ? insets.bottom : 8,
           paddingTop: 6,
         },
         tabBarLabelStyle: {
