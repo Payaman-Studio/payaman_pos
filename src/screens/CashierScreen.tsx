@@ -20,6 +20,7 @@ import {
   Dialog,
   IconButton,
   Snackbar,
+  Divider,
 } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -29,7 +30,7 @@ import { useInventory } from '../hooks/useInventory';
 
 function CashierScreen() {
   const insets = useSafeAreaInsets();
-  
+
   // Custom Hooks
   const { inventoryItems } = useInventory();
   const {
@@ -60,9 +61,11 @@ function CashierScreen() {
   const [manualUnit, setManualUnit] = useState<'Pcs' | 'Kg'>('Pcs');
   const [manualDirection] = useState<'OUT' | 'IN'>('OUT');
   const [numpadTarget, setNumpadTarget] = useState<'price' | 'qty'>('price');
-  
+
   // States untuk edit item komoditas terpilih di keranjang
-  const [selectedCartItem, setSelectedCartItem] = useState<CartItem | null>(null);
+  const [selectedCartItem, setSelectedCartItem] = useState<CartItem | null>(
+    null,
+  );
   const [editQtyInput, setEditQtyInput] = useState('');
 
   // Feedback States
@@ -85,29 +88,32 @@ function CashierScreen() {
   const manualPriceValue = parseInt(manualPriceRaw, 10) || 0;
   const manualSubtotal = manualPriceValue * manualQty;
 
-  const handleNumpadPress = useCallback((key: string) => {
-    if (numpadTarget === 'price') {
-      setManualPriceRaw(prev => {
-        if (key === 'backspace') {
-          const next = prev.slice(0, -1);
-          return next === '' ? '0' : next;
-        }
-        if (key === '000') return prev === '0' ? '0' : prev + '000';
-        if (prev === '0') return key;
-        return prev + key;
-      });
-    } else {
-      // target === 'qty'
-      setManualQty(prev => {
-        if (key === 'backspace') {
-          const next = Math.floor(prev / 10);
-          return next === 0 ? 1 : next;
-        }
-        if (key === '000') return prev * 1000;
-        return prev * 10 + parseInt(key, 10);
-      });
-    }
-  }, [numpadTarget]);
+  const handleNumpadPress = useCallback(
+    (key: string) => {
+      if (numpadTarget === 'price') {
+        setManualPriceRaw(prev => {
+          if (key === 'backspace') {
+            const next = prev.slice(0, -1);
+            return next === '' ? '0' : next;
+          }
+          if (key === '000') return prev === '0' ? '0' : prev + '000';
+          if (prev === '0') return key;
+          return prev + key;
+        });
+      } else {
+        // target === 'qty'
+        setManualQty(prev => {
+          if (key === 'backspace') {
+            const next = Math.floor(prev / 10);
+            return next === 0 ? 1 : next;
+          }
+          if (key === '000') return prev * 1000;
+          return prev * 10 + parseInt(key, 10);
+        });
+      }
+    },
+    [numpadTarget],
+  );
 
   const resetManualForm = () => {
     setManualName('');
@@ -131,7 +137,7 @@ function CashierScreen() {
         barcode: null,
       },
       manualQty,
-      manualDirection
+      manualDirection,
     );
 
     resetManualForm();
@@ -151,7 +157,7 @@ function CashierScreen() {
   // Checkout Transaksi
   const handleCheckout = async () => {
     if (cartItems.length === 0) return;
-    
+
     // Validasi nominal bayar jika pelanggan harus bayar
     if (finalAmount > 0 && Number(cashReceived) < finalAmount) {
       showFeedback('Pembayaran tunai belum mencukupi');
@@ -167,10 +173,14 @@ function CashierScreen() {
   };
 
   const searchResults = searchQuery.trim()
-    ? inventoryItems.filter(item =>
-        item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (item.barcode && item.barcode.toLowerCase().includes(searchQuery.toLowerCase()))
-      ).slice(0, 15)
+    ? inventoryItems
+        .filter(
+          item =>
+            item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            (item.barcode &&
+              item.barcode.toLowerCase().includes(searchQuery.toLowerCase())),
+        )
+        .slice(0, 15)
     : [];
 
   // Render list item keranjang kasir
@@ -208,7 +218,11 @@ function CashierScreen() {
                   <Text style={styles.beliTagText}>BELI</Text>
                 </View>
               )}
-              <Text variant="titleMedium" style={styles.cartItemName} numberOfLines={1}>
+              <Text
+                variant="titleMedium"
+                style={styles.cartItemName}
+                numberOfLines={1}
+              >
                 {item.name}
               </Text>
             </View>
@@ -356,9 +370,12 @@ function CashierScreen() {
                         }}
                       >
                         <View style={styles.searchResultLeft}>
-                          <Text style={styles.searchResultName}>{item.name}</Text>
+                          <Text style={styles.searchResultName}>
+                            {item.name}
+                          </Text>
                           <Text style={styles.searchResultMeta}>
-                            {isProduct ? 'Produk' : 'Komoditas'} — Stok: {item.stock} {item.unit}
+                            {isProduct ? 'Produk' : 'Komoditas'} — Stok:{' '}
+                            {item.stock} {item.unit}
                           </Text>
                         </View>
                         <Text style={styles.searchResultPrice}>
@@ -397,7 +414,9 @@ function CashierScreen() {
           <View style={styles.summaryContainer}>
             <View style={styles.summaryRow}>
               <Text style={styles.summaryLabel}>Total Belanja</Text>
-              <Text style={styles.summaryValue}>{formatRupiah(totalSales)}</Text>
+              <Text style={styles.summaryValue}>
+                {formatRupiah(totalSales)}
+              </Text>
             </View>
 
             <View style={styles.summaryRow}>
@@ -406,15 +425,42 @@ function CashierScreen() {
                 {formatRupiah(-totalPurchases)}
               </Text>
             </View>
+            <Divider style={{ marginVertical: 8 }} />
 
+            <View style={styles.netAmountRow}>
+              <View style={styles.netLabelLeft}>
+                {isWarungPay && (
+                  <Icon
+                    name="information-outline"
+                    size={20}
+                    color="#DC2626"
+                    style={styles.infoIcon}
+                  />
+                )}
+                <Text
+                  style={
+                    isWarungPay ? styles.payStatusRed : styles.payStatusBlack
+                  }
+                >
+                  {isWarungPay ? 'WARUNG HARUS BAYAR' : 'TOTAL'}
+                </Text>
+              </View>
+              <Text
+                style={[
+                  styles.netAmountVal,
+                  isWarungPay ? styles.textRed : styles.textBlack,
+                ]}
+              >
+                {formatRupiah(finalAmount)}
+              </Text>
+            </View>
+            <Divider style={{ marginVertical: 8 }} />
 
-            <View style={styles.divider} />
-
-            {/* Input Tunai Diterima jika pelanggan harus bayar */}
-            {!isWarungPay && finalAmount > 0 && (
+            {isWarungPay && (
               <View style={styles.summaryRow}>
-                <Text style={styles.summaryLabel}>Tunai Diterima</Text>
+                <Text style={styles.summaryLabel}>Tunai Diserahkan</Text>
                 <TextInput
+                  selectTextOnFocus
                   value={cashReceived}
                   onChangeText={setCashReceived}
                   keyboardType="numeric"
@@ -423,7 +469,30 @@ function CashierScreen() {
                   activeOutlineColor="#000000"
                   style={styles.cashInput}
                   contentStyle={styles.cashInputContent}
-                  left={<TextInput.Affix text="Rp " textStyle={styles.affixStyle} />}
+                  left={
+                    <TextInput.Affix text="Rp " textStyle={styles.affixStyle} />
+                  }
+                />
+              </View>
+            )}
+
+            {/* Input Tunai Diterima jika pelanggan harus bayar */}
+            {!isWarungPay && finalAmount > 0 && (
+              <View style={styles.summaryRow}>
+                <Text style={styles.summaryLabel}>Tunai Diterima</Text>
+                <TextInput
+                  selectTextOnFocus={true}
+                  value={cashReceived}
+                  onChangeText={setCashReceived}
+                  keyboardType="numeric"
+                  mode="outlined"
+                  outlineColor="#D1D5DB"
+                  activeOutlineColor="#000000"
+                  style={styles.cashInput}
+                  contentStyle={styles.cashInputContent}
+                  left={
+                    <TextInput.Affix text="Rp " textStyle={styles.affixStyle} />
+                  }
                 />
               </View>
             )}
@@ -431,35 +500,25 @@ function CashierScreen() {
             {!isWarungPay && finalAmount > 0 && (
               <View style={styles.summaryRow}>
                 <Text style={styles.summaryLabel}>KEMBALIAN</Text>
-                <Text style={styles.changeAmountText}>{changeAmount.toLocaleString('id-ID')}</Text>
+                <Text style={styles.changeAmountText}>
+                  {changeAmount.toLocaleString('id-ID')}
+                </Text>
               </View>
             )}
 
             <View style={styles.divider} />
 
-            {/* Status Transaksi Dinamis */}
-            <View style={styles.netAmountRow}>
-              <View style={styles.netLabelLeft}>
-                {isWarungPay && (
-                  <Icon name="information-outline" size={20} color="#DC2626" style={styles.infoIcon} />
-                )}
-                <Text style={isWarungPay ? styles.payStatusRed : styles.payStatusBlack}>
-                  {isWarungPay ? 'WARUNG HARUS BAYAR' : 'PELANGGAN HARUS BAYAR'}
-                </Text>
-              </View>
-              <Text style={[styles.netAmountVal, isWarungPay ? styles.textRed : styles.textBlack]}>
-                {formatRupiah(finalAmount)}
-              </Text>
-            </View>
-
-            {/* Tombol Aksi Checkout */}
+            {/* Status Transaksi & Checkout */}
             <Button
               mode="contained"
               icon={isWarungPay ? 'cash-multiple' : 'cash-register'}
               onPress={handleCheckout}
               disabled={isSubmitting || cartItems.length === 0}
               loading={isSubmitting}
-              style={[styles.checkoutBtn, isWarungPay ? styles.checkoutBtnGreen : styles.checkoutBtnBlack]}
+              style={[
+                styles.checkoutBtn,
+                isWarungPay ? styles.checkoutBtnGreen : styles.checkoutBtnBlack,
+              ]}
               labelStyle={styles.checkoutBtnLabel}
             >
               {isWarungPay ? 'Serahkan Uang ke Pelanggan' : 'Terima Pembayaran'}
@@ -470,8 +529,14 @@ function CashierScreen() {
 
       <Portal>
         {/* Modal: Edit Kuantitas Komoditas */}
-        <Dialog visible={editQtyModalVisible} onDismiss={() => setEditQtyModalVisible(false)} style={styles.dialog}>
-          <Dialog.Title style={styles.dialogTitle}>Ubah Jumlah Komoditas</Dialog.Title>
+        <Dialog
+          visible={editQtyModalVisible}
+          onDismiss={() => setEditQtyModalVisible(false)}
+          style={styles.dialog}
+        >
+          <Dialog.Title style={styles.dialogTitle}>
+            Ubah Jumlah Komoditas
+          </Dialog.Title>
           <Dialog.Content>
             <Text style={styles.editQtyItemName}>{selectedCartItem?.name}</Text>
             <TextInput
@@ -485,8 +550,20 @@ function CashierScreen() {
             />
           </Dialog.Content>
           <Dialog.Actions>
-            <Button onPress={() => setEditQtyModalVisible(false)} textColor="#4B5563">Batal</Button>
-            <Button onPress={handleSaveEditQty} textColor="#000000" style={styles.saveBtn} labelStyle={styles.saveBtnLabel}>Simpan</Button>
+            <Button
+              onPress={() => setEditQtyModalVisible(false)}
+              textColor="#4B5563"
+            >
+              Batal
+            </Button>
+            <Button
+              onPress={handleSaveEditQty}
+              textColor="#000000"
+              style={styles.saveBtn}
+              labelStyle={styles.saveBtnLabel}
+            >
+              Simpan
+            </Button>
           </Dialog.Actions>
         </Dialog>
       </Portal>
@@ -510,7 +587,9 @@ function CashierScreen() {
               setManualModalVisible(false);
             }}
           />
-          <View style={[styles.bsContainer, { paddingBottom: insets.bottom + 8 }]}>
+          <View
+            style={[styles.bsContainer, { paddingBottom: insets.bottom + 8 }]}
+          >
             {/* Header */}
             <View style={styles.bsHeader}>
               <Text style={styles.bsTitle}>Tambah Produk Manual</Text>
@@ -597,7 +676,9 @@ function CashierScreen() {
               </View>
 
               {/* JUMLAH */}
-              <Text style={styles.bsFieldLabel}>JUMLAH ({manualUnit.toUpperCase()})</Text>
+              <Text style={styles.bsFieldLabel}>
+                JUMLAH ({manualUnit.toUpperCase()})
+              </Text>
               <View style={styles.bsQtyRow}>
                 <TouchableOpacity
                   style={styles.bsQtyBtn}
@@ -625,7 +706,20 @@ function CashierScreen() {
 
               {/* CUSTOM NUMPAD */}
               <View style={styles.numpadGrid}>
-                {['1','2','3','4','5','6','7','8','9','000','0','backspace'].map(key => (
+                {[
+                  '1',
+                  '2',
+                  '3',
+                  '4',
+                  '5',
+                  '6',
+                  '7',
+                  '8',
+                  '9',
+                  '000',
+                  '0',
+                  'backspace',
+                ].map(key => (
                   <TouchableOpacity
                     key={key}
                     style={[
@@ -636,7 +730,11 @@ function CashierScreen() {
                     activeOpacity={0.6}
                   >
                     {key === 'backspace' ? (
-                      <Icon name="backspace-outline" size={22} color="#DC2626" />
+                      <Icon
+                        name="backspace-outline"
+                        size={22}
+                        color="#DC2626"
+                      />
                     ) : (
                       <Text style={styles.numpadKeyText}>{key}</Text>
                     )}
@@ -664,13 +762,19 @@ function CashierScreen() {
               <TouchableOpacity
                 style={[
                   styles.bsAddBtn,
-                  (!manualName.trim() || manualPriceValue <= 0) && styles.bsAddBtnDisabled,
+                  (!manualName.trim() || manualPriceValue <= 0) &&
+                    styles.bsAddBtnDisabled,
                 ]}
                 onPress={handleAddManualItem}
                 disabled={!manualName.trim() || manualPriceValue <= 0}
                 activeOpacity={0.85}
               >
-                <Icon name="cart" size={20} color="#FFFFFF" style={styles.bsAddBtnIcon} />
+                <Icon
+                  name="cart"
+                  size={20}
+                  color="#FFFFFF"
+                  style={styles.bsAddBtnIcon}
+                />
                 <Text style={styles.bsAddBtnText}>TAMBAH KE KERANJANG</Text>
               </TouchableOpacity>
             </View>
