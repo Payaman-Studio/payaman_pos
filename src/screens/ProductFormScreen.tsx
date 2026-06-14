@@ -306,6 +306,24 @@ function ProductFormScreen() {
             </View>
           </View>
 
+          {/* Switch Produk Komoditas Warga */}
+          <View style={styles.commoditySwitchContainer}>
+            <View style={styles.commoditySwitchLeft}>
+              <Icon
+                name="leaf"
+                size={20}
+                color="#16A34A"
+                style={styles.commodityIcon}
+              />
+              <Text style={styles.commodityText}>Produk Komoditas Warga</Text>
+            </View>
+            <Switch
+              value={isCommodity}
+              onValueChange={setIsCommodity}
+              color="#16A34A"
+            />
+          </View>
+
           <View style={styles.divider} />
 
           {/* BAGIAN 1: INFORMASI DASAR */}
@@ -328,80 +346,84 @@ function ProductFormScreen() {
             />
           </View>
 
-          <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>SKU / Barcode</Text>
-            <TextInput
-              placeholder="Masukkan atau scan barcode"
-              value={barcode}
-              onChangeText={setBarcode}
-              mode="outlined"
-              outlineColor="#E5E7EB"
-              activeOutlineColor="#000000"
-              style={styles.textInput}
-              contentStyle={styles.textInputContent}
-              right={
-                <TextInput.Icon icon="barcode" color="#000000" size={20} />
-              }
-            />
-          </View>
-
-          <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>Kategori</Text>
-            <Menu
-              visible={categoryMenuVisible}
-              onDismiss={() => setCategoryMenuVisible(false)}
-              anchor={
-                <TouchableOpacity
-                  activeOpacity={0.8}
-                  onPress={() => setCategoryMenuVisible(true)}
-                  style={styles.dropdownTrigger}
-                >
-                  <Text
-                    style={
-                      category
-                        ? styles.dropdownText
-                        : styles.dropdownPlaceholder
-                    }
-                  >
-                    {category || 'Pilih Kategori'}
-                  </Text>
-                  <Icon name="chevron-down" size={20} color="#6B7280" />
-                </TouchableOpacity>
-              }
-            >
-              {availableCategories.map(cat => (
-                <Menu.Item
-                  key={cat}
-                  onPress={() => {
-                    setCategory(cat);
-                    setCategoryMenuVisible(false);
-                  }}
-                  title={cat}
-                />
-              ))}
-              <Menu.Item
-                onPress={() => {
-                  setCategoryMenuVisible(false);
-                  // Buka input teks baru secara langsung dengan state
-                  setCategory('');
-                }}
-                title="+ Buat Kategori Baru"
-              />
-            </Menu>
-            {/* Input teks kategori jika kategori tidak ada di list atau ingin buat baru */}
-            {!availableCategories.includes(category) && (
+          {!isCommodity && (
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>SKU / Barcode</Text>
               <TextInput
-                placeholder="Tulis Kategori Baru..."
-                value={category}
-                onChangeText={setCategory}
+                placeholder="Masukkan atau scan barcode"
+                value={barcode}
+                onChangeText={setBarcode}
                 mode="outlined"
                 outlineColor="#E5E7EB"
                 activeOutlineColor="#000000"
-                style={[styles.textInput, styles.marginTop8]}
+                style={styles.textInput}
                 contentStyle={styles.textInputContent}
+                right={
+                  <TextInput.Icon icon="barcode" color="#000000" size={20} />
+                }
               />
-            )}
-          </View>
+            </View>
+          )}
+
+          {!isCommodity && (
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>Kategori</Text>
+              <Menu
+                visible={categoryMenuVisible}
+                onDismiss={() => setCategoryMenuVisible(false)}
+                anchor={
+                  <TouchableOpacity
+                    activeOpacity={0.8}
+                    onPress={() => setCategoryMenuVisible(true)}
+                    style={styles.dropdownTrigger}
+                  >
+                    <Text
+                      style={
+                        category
+                          ? styles.dropdownText
+                          : styles.dropdownPlaceholder
+                      }
+                    >
+                      {category || 'Pilih Kategori'}
+                    </Text>
+                    <Icon name="chevron-down" size={20} color="#6B7280" />
+                  </TouchableOpacity>
+                }
+              >
+                {availableCategories.map(cat => (
+                  <Menu.Item
+                    key={cat}
+                    onPress={() => {
+                      setCategory(cat);
+                      setCategoryMenuVisible(false);
+                    }}
+                    title={cat}
+                  />
+                ))}
+                <Menu.Item
+                  onPress={() => {
+                    setCategoryMenuVisible(false);
+                    // Buka input teks baru secara langsung dengan state
+                    setCategory('');
+                  }}
+                  title="+ Buat Kategori Baru"
+                />
+              </Menu>
+              {/* Input teks kategori jika kategori tidak ada di list atau ingin buat baru */}
+              {!availableCategories.includes(category) && (
+                <TextInput
+                  placeholder="Tulis Kategori Baru..."
+                  value={category}
+                  onChangeText={setCategory}
+                  mode="outlined"
+                  outlineColor="#E5E7EB"
+                  activeOutlineColor="#000000"
+                  style={[styles.textInput, styles.marginTop8]}
+                  contentStyle={styles.textInputContent}
+                />
+              )}
+            </View>
+          )}
 
           <View style={styles.divider} />
 
@@ -448,54 +470,39 @@ function ProductFormScreen() {
             />
           </View>
 
-          <View style={styles.rowInputs}>
-            <View style={[styles.inputGroup, styles.halfInput]}>
-              <Text style={styles.inputLabel}>Stok Awal</Text>
-              <TextInput
-                value={stock}
-                onChangeText={setStock}
-                keyboardType="numeric"
-                mode="outlined"
-                outlineColor="#E5E7EB"
-                activeOutlineColor="#000000"
-                style={styles.textInput}
-                contentStyle={styles.textInputContent}
-              />
-            </View>
+          {!isCommodity && (
+            <View style={styles.rowInputs}>
+              <View style={[styles.inputGroup, styles.halfInput]}>
+                <Text style={styles.inputLabel}>Stok Awal</Text>
+                <TextInput
+                  value={stock}
+                  onChangeText={setStock}
+                  keyboardType="numeric"
+                  mode="outlined"
+                  outlineColor="#E5E7EB"
+                  activeOutlineColor="#000000"
+                  style={styles.textInput}
+                  contentStyle={styles.textInputContent}
+                />
+              </View>
 
-            <View style={[styles.inputGroup, styles.halfInput]}>
-              <Text style={styles.inputLabel}>Min. Stok</Text>
-              <TextInput
-                value={minStock}
-                onChangeText={setMinStock}
-                keyboardType="numeric"
-                mode="outlined"
-                outlineColor="#E5E7EB"
-                activeOutlineColor="#000000"
-                style={styles.textInput}
-                contentStyle={styles.textInputContent}
-                textColor="#DC2626"
-              />
+              <View style={[styles.inputGroup, styles.halfInput]}>
+                <Text style={styles.inputLabel}>Min. Stok</Text>
+                <TextInput
+                  value={minStock}
+                  onChangeText={setMinStock}
+                  keyboardType="numeric"
+                  mode="outlined"
+                  outlineColor="#E5E7EB"
+                  activeOutlineColor="#000000"
+                  style={styles.textInput}
+                  contentStyle={styles.textInputContent}
+                  textColor="#DC2626"
+                />
+              </View>
             </View>
-          </View>
+          )}
 
-          {/* Switch Produk Komoditas Warga */}
-          <View style={styles.commoditySwitchContainer}>
-            <View style={styles.commoditySwitchLeft}>
-              <Icon
-                name="leaf"
-                size={20}
-                color="#16A34A"
-                style={styles.commodityIcon}
-              />
-              <Text style={styles.commodityText}>Produk Komoditas Warga</Text>
-            </View>
-            <Switch
-              value={isCommodity}
-              onValueChange={setIsCommodity}
-              color="#16A34A"
-            />
-          </View>
         </ScrollView>
 
         {/* Sticky Simpan Button di bagian bawah */}

@@ -138,7 +138,9 @@ export function getDatabase(): NitroSQLiteConnection {
   if (db) return db;
 
   db = open({ name: 'waroeng.db' });
-  db.execute(CREATE_TABLES);
+  for (const stmt of CREATE_TABLES) {
+    db.execute(stmt);
+  }
   migrate(db);
   seedDatabase(db);
 
