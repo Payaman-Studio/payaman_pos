@@ -47,15 +47,10 @@ function CashierScreen() {
     isSubmitting,
   } = useCashier();
 
-  // Modal Dialog States
-  const [productModalVisible, setProductModalVisible] = useState(false);
-  const [commodityModalVisible, setCommodityModalVisible] = useState(false);
   const [manualModalVisible, setManualModalVisible] = useState(false);
   const [editQtyModalVisible, setEditQtyModalVisible] = useState(false);
 
-  // Search Filter States
-  const [searchProductQuery, setSearchProductQuery] = useState('');
-  const [searchCommodityQuery, setSearchCommodityQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Form States: Tambah Manual
   const [manualName, setManualName] = useState('');
@@ -170,19 +165,12 @@ function CashierScreen() {
     }
   };
 
-  // Filter daftar produk inventori
-  const filteredProducts = inventoryItems.filter(
-    item =>
-      item.type === 'PRODUCT' &&
-      item.name.toLowerCase().includes(searchProductQuery.toLowerCase())
-  );
-
-  // Filter daftar komoditas inventori
-  const filteredCommodities = inventoryItems.filter(
-    item =>
-      item.type === 'COMMODITY' &&
-      item.name.toLowerCase().includes(searchCommodityQuery.toLowerCase())
-  );
+  const searchResults = searchQuery.trim()
+    ? inventoryItems.filter(item =>
+        item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (item.barcode && item.barcode.toLowerCase().includes(searchQuery.toLowerCase()))
+      ).slice(0, 15)
+    : [];
 
   // Render list item keranjang kasir
   const renderCartItem = ({ item }: { item: CartItem }) => {
@@ -301,35 +289,73 @@ function CashierScreen() {
         style={styles.flexContainer}
       >
         <View style={styles.mainContainer}>
-          {/* INPUT SCAN / CARI */}
-          <TouchableOpacity
-            activeOpacity={0.9}
-            style={styles.searchBox}
-            onPress={() => setProductModalVisible(true)}
-          >
-            <Icon name="barcode" size={24} color="#9CA3AF" />
-            <Text style={styles.searchBoxText}>Scan/Cari Produk Toko</Text>
-          </TouchableOpacity>
+          {/* INPUT SCAN / CARI — selalu aktif */}
+          <View style={styles.searchWrapper}>
+            <View style={styles.searchRow}>
+              <TextInput
+                placeholder="Scan barcode atau cari produk/komoditas..."
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+                mode="outlined"
+                outlineColor="#E5E7EB"
+                activeOutlineColor="#000000"
+                style={styles.searchInput}
+                contentStyle={styles.searchInputContent}
+                left={<TextInput.Icon icon="barcode" color="#9CA3AF" />}
+                right={
+                  searchQuery ? (
+                    <TextInput.Icon
+                      icon="close"
+                      color="#9CA3AF"
+                      onPress={() => setSearchQuery('')}
+                    />
+                  ) : undefined
+                }
+                autoFocus
+              />
 
-          {/* TOMBOL AKSI CEPAT */}
-          <View style={styles.rowButtons}>
-            <TouchableOpacity
-              activeOpacity={0.8}
-              style={styles.actionBtn}
-              onPress={() => setCommodityModalVisible(true)}
-            >
-              <Icon name="download" size={18} color="#000000" style={styles.actionBtnIcon} />
-              <Text style={styles.actionBtnText}>Terima Komoditas</Text>
-            </TouchableOpacity>
+              <TouchableOpacity
+                activeOpacity={0.8}
+                style={styles.manualBtn}
+                onPress={() => setManualModalVisible(true)}
+              >
+                <Icon name="playlist-plus" size={20} color="#000000" />
+              </TouchableOpacity>
+            </View>
 
-            <TouchableOpacity
-              activeOpacity={0.8}
-              style={styles.actionBtn}
-              onPress={() => setManualModalVisible(true)}
-            >
-              <Icon name="playlist-plus" size={20} color="#000000" style={styles.actionBtnIcon} />
-              <Text style={styles.actionBtnText}>Tambah Manual</Text>
-            </TouchableOpacity>
+            {/* Dropdown hasil pencarian */}
+            {searchResults.length > 0 && (
+              <View style={styles.searchDropdown}>
+                <FlatList
+                  data={searchResults}
+                  keyExtractor={item => item.id}
+                  keyboardShouldPersistTaps="handled"
+                  renderItem={({ item }) => {
+                    const isProduct = item.type === 'PRODUCT';
+                    return (
+                      <TouchableOpacity
+                        style={styles.searchResultItem}
+                        onPress={() => {
+                          addToCart(item, 1, isProduct ? 'OUT' : 'IN');
+                          setSearchQuery('');
+                          showFeedback(`${item.name} dimasukkan`);
+                        }}
+                      >
+                        <View style={styles.searchResultLeft}>
+                          <Text style={styles.searchResultName}>{item.name}</Text>
+                          <Text style={styles.searchResultMeta}>
+                            {isProduct ? 'Produk' : 'Komoditas'} — Stok: {item.stock} {item.unit}
+                          </Text>
+                        </View>
+                        <Text style={styles.searchResultPrice}>
+                          {formatRupiah(item.price)}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  }}
+                />
+              </View>
+            )}
           </View>
 
           {/* LIST KERANJANG */}
@@ -415,7 +441,7 @@ function CashierScreen() {
             {/* Tombol Aksi Checkout */}
             <Button
               mode="contained"
-              icon={isWarungPay ? 'cash-hand' : 'cash-register'}
+              icon={isWarungPay ? 'cash-multiple' : 'cash-register'}
               onPress={handleCheckout}
               disabled={isSubmitting || cartItems.length === 0}
               loading={isSubmitting}
@@ -428,93 +454,8 @@ function CashierScreen() {
         </View>
       </KeyboardAvoidingView>
 
-      {/* PORTAL MODAL DIALOG */}
       <Portal>
-        {/* Modal 1: Pencarian Produk Toko */}
-        <Dialog visible={productModalVisible} onDismiss={() => setProductModalVisible(false)} style={styles.dialog}>
-          <Dialog.Title style={styles.dialogTitle}>Pilih Produk Toko</Dialog.Title>
-          <Dialog.Content style={styles.dialogContent}>
-            <TextInput
-              placeholder="Cari nama produk..."
-              value={searchProductQuery}
-              onChangeText={setSearchProductQuery}
-              mode="outlined"
-              activeOutlineColor="#000000"
-              style={styles.dialogSearch}
-              left={<TextInput.Icon icon="magnify" />}
-            />
-            <FlatList
-              data={filteredProducts}
-              keyExtractor={item => item.id}
-              style={styles.dialogList}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  style={styles.listItem}
-                  onPress={() => {
-                    addToCart(item, 1, 'OUT');
-                    setProductModalVisible(false);
-                    setSearchProductQuery('');
-                    showFeedback(`${item.name} dimasukkan`);
-                  }}
-                >
-                  <View style={styles.listItemLeft}>
-                    <Text style={styles.listItemName}>{item.name}</Text>
-                    <Text style={styles.listItemSku}>Stok: {item.stock} | SKU: {item.barcode || '-'}</Text>
-                  </View>
-                  <Text style={styles.listItemPrice}>{formatRupiah(item.price)}</Text>
-                </TouchableOpacity>
-              )}
-            />
-          </Dialog.Content>
-          <Dialog.Actions>
-            <Button onPress={() => setProductModalVisible(false)} textColor="#000000">Tutup</Button>
-          </Dialog.Actions>
-        </Dialog>
-
-        {/* Modal 2: Terima Komoditas Warga */}
-        <Dialog visible={commodityModalVisible} onDismiss={() => setCommodityModalVisible(false)} style={styles.dialog}>
-          <Dialog.Title style={styles.dialogTitle}>Pilih Komoditas Warga</Dialog.Title>
-          <Dialog.Content style={styles.dialogContent}>
-            <TextInput
-              placeholder="Cari nama komoditas..."
-              value={searchCommodityQuery}
-              onChangeText={setSearchCommodityQuery}
-              mode="outlined"
-              activeOutlineColor="#000000"
-              style={styles.dialogSearch}
-              left={<TextInput.Icon icon="magnify" />}
-            />
-            <FlatList
-              data={filteredCommodities}
-              keyExtractor={item => item.id}
-              style={styles.dialogList}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  style={styles.listItem}
-                  onPress={() => {
-                    addToCart(item, 1.0, 'IN');
-                    setCommodityModalVisible(false);
-                    setSearchCommodityQuery('');
-                    showFeedback(`${item.name} dimasukkan (Beli)`);
-                  }}
-                >
-                  <View style={styles.listItemLeft}>
-                    <Text style={styles.listItemName}>{item.name}</Text>
-                    <Text style={styles.listItemSku}>Stok: {item.stock} {item.unit}</Text>
-                  </View>
-                  <Text style={styles.listItemPrice}>{formatRupiah(item.price)}</Text>
-                </TouchableOpacity>
-              )}
-            />
-          </Dialog.Content>
-          <Dialog.Actions>
-            <Button onPress={() => setCommodityModalVisible(false)} textColor="#000000">Tutup</Button>
-          </Dialog.Actions>
-        </Dialog>
-
-        {/* Modal 3: Tambah Manual — Bottom Sheet */}
-
-        {/* Modal 4: Edit Kuantitas Komoditas */}
+        {/* Modal: Edit Kuantitas Komoditas */}
         <Dialog visible={editQtyModalVisible} onDismiss={() => setEditQtyModalVisible(false)} style={styles.dialog}>
           <Dialog.Title style={styles.dialogTitle}>Ubah Jumlah Komoditas</Dialog.Title>
           <Dialog.Content>
@@ -767,47 +708,76 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 12,
   },
-  searchBox: {
+  searchWrapper: {
+    position: 'relative',
+    zIndex: 100,
+    marginBottom: 12,
+  },
+  searchRow: {
     flexDirection: 'row',
+    gap: 8,
     alignItems: 'center',
+  },
+  searchInput: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+    height: 48,
+  },
+  searchInputContent: {
+    fontSize: 15,
+  },
+  manualBtn: {
+    width: 48,
+    height: 48,
+    borderWidth: 1,
+    borderColor: '#000000',
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+  },
+  searchDropdown: {
+    position: 'absolute',
+    top: 52,
+    left: 0,
+    right: 0,
     backgroundColor: '#FFFFFF',
     borderWidth: 1,
     borderColor: '#E5E7EB',
     borderRadius: 8,
-    height: 48,
-    paddingHorizontal: 16,
-    marginBottom: 12,
-    gap: 12,
+    maxHeight: 240,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 6,
   },
-  searchBoxText: {
-    color: '#9CA3AF',
-    fontSize: 15,
-    fontWeight: '500',
-  },
-  rowButtons: {
+  searchResultItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    gap: 12,
-    marginBottom: 16,
-  },
-  actionBtn: {
-    flex: 1,
-    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: '#000000',
-    borderRadius: 8,
-    height: 44,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    borderBottomWidth: 0.5,
+    borderBottomColor: '#F3F4F6',
   },
-  actionBtnIcon: {
-    marginRight: 6,
+  searchResultLeft: {
+    flex: 1,
   },
-  actionBtnText: {
+  searchResultName: {
     fontWeight: '700',
-    fontSize: 13,
-    color: '#000000',
+    fontSize: 14,
+    color: '#111827',
+    marginBottom: 2,
+  },
+  searchResultMeta: {
+    fontSize: 12,
+    color: '#9CA3AF',
+  },
+  searchResultPrice: {
+    fontWeight: '700',
+    color: '#111827',
+    marginLeft: 12,
   },
   cartHeaderRow: {
     flexDirection: 'row',
@@ -1036,42 +1006,6 @@ const styles = StyleSheet.create({
   dialogTitle: {
     fontWeight: '800',
     fontSize: 18,
-    color: '#111827',
-  },
-  dialogContent: {
-    paddingBottom: 8,
-  },
-  dialogSearch: {
-    backgroundColor: '#FFFFFF',
-    height: 44,
-    marginBottom: 12,
-  },
-  dialogList: {
-    maxHeight: 250,
-  },
-  listItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 10,
-    borderBottomWidth: 0.5,
-    borderBottomColor: '#E5E7EB',
-  },
-  listItemLeft: {
-    flex: 1,
-  },
-  listItemName: {
-    fontWeight: '700',
-    fontSize: 14,
-    color: '#111827',
-    marginBottom: 2,
-  },
-  listItemSku: {
-    fontSize: 12,
-    color: '#9CA3AF',
-  },
-  listItemPrice: {
-    fontWeight: '700',
     color: '#111827',
   },
   dialogInput: {
