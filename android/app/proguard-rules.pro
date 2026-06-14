@@ -7,4 +7,19 @@
 # For more details, see
 #   http://developer.android.com/guide/developing/tools/proguard.html
 
-# Add any project specific keep options here:
+# React Native
+-keep class com.facebook.react.** { *; }
+-keep class com.facebook.hermes.** { *; }
+-keep class com.facebook.jni.** { *; }
+
+# react-native-nitro-sqlite
+-keep class com.margelo.nitro.** { *; }
+
+# react-native-vector-icons
+-keep class com.vectoricons.** { *; }
+
+# Keep generic signatures and source file names
+-keepattributes Signature
+-keepattributes *Annotation*
+-renamesourcefileattribute SourceFile
+-keepattributes SourceFile,LineNumberTable
