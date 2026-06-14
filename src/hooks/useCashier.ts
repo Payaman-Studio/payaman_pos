@@ -7,14 +7,15 @@ import * as dbTransactionDetails from '../database/dbTransactionDetails';
 import { InventoryItem } from './useInventory';
 
 export interface CartItem {
-  id: string; // id unik item di keranjang
-  itemId: string; // id barang asli di database
+  id: string;
+  itemId: string;
   type: 'PRODUCT' | 'COMMODITY';
   name: string;
   price: number;
   quantity: number;
-  flowDirection: 'OUT' | 'IN'; // OUT = Jual (Uang masuk), IN = Beli (Uang keluar)
+  flowDirection: 'OUT' | 'IN';
   unit: string;
+  photo: string | null;
 }
 
 export function useCashier() {
@@ -23,7 +24,7 @@ export function useCashier() {
   const [cashReceived, setCashReceived] = useState('0');
 
   // Menambahkan barang ke keranjang
-  const addToCart = (item: InventoryItem | { id: string; name: string; price: number; type: 'PRODUCT' | 'COMMODITY'; unit: string; barcode?: string | null }, quantity: number, flowDirection: 'OUT' | 'IN') => {
+  const addToCart = (item: InventoryItem | { id: string; name: string; price: number; type: 'PRODUCT' | 'COMMODITY'; unit: string; barcode?: string | null; photo?: string | null }, quantity: number, flowDirection: 'OUT' | 'IN') => {
     setCartItems(prev => {
       // Cek apakah item serupa dengan tipe & arah aliran yang sama sudah ada di keranjang
       const existingIndex = prev.findIndex(
@@ -48,6 +49,7 @@ export function useCashier() {
           quantity,
           flowDirection,
           unit: item.unit,
+          photo: item.photo ?? null,
         },
       ];
     });

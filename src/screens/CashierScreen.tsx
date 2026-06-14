@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import {
   View,
+  Image,
   StyleSheet,
   FlatList,
   TouchableOpacity,
@@ -186,6 +187,19 @@ function CashierScreen() {
         mode="outlined"
       >
         <View style={styles.cartCardContent}>
+          {/* Foto */}
+          {item.photo ? (
+            <Image source={{ uri: item.photo }} style={styles.cartPhoto} />
+          ) : (
+            <View style={styles.cartPhotoPlaceholder}>
+              <Icon
+                name={isOut ? 'package-variant' : 'leaf'}
+                size={20}
+                color="#9CA3AF"
+              />
+            </View>
+          )}
+
           {/* Info Barang */}
           <View style={styles.cartDetailsContainer}>
             <View style={styles.cartNameRow}>
@@ -828,6 +842,21 @@ const styles = StyleSheet.create({
   cartCardContent: {
     flexDirection: 'row',
     padding: 12,
+    alignItems: 'center',
+    gap: 10,
+  },
+  cartPhoto: {
+    width: 40,
+    height: 40,
+    borderRadius: 6,
+    backgroundColor: '#F3F4F6',
+  },
+  cartPhotoPlaceholder: {
+    width: 40,
+    height: 40,
+    borderRadius: 6,
+    backgroundColor: '#F3F4F6',
+    justifyContent: 'center',
     alignItems: 'center',
   },
   cartDetailsContainer: {
