@@ -26,7 +26,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 import { useCashier, CartItem } from '../hooks/useCashier';
-import { useInventory } from '../hooks/useInventory';
+import { useInventory, InventoryItem } from '../hooks/useInventory';
+import BarcodeScannerModal from '../components/BarcodeScannerModal';
 
 function CashierScreen() {
   const insets = useSafeAreaInsets();
@@ -51,6 +52,7 @@ function CashierScreen() {
 
   const [manualModalVisible, setManualModalVisible] = useState(false);
   const [editQtyModalVisible, setEditQtyModalVisible] = useState(false);
+  const [barcodeScannerVisible, setBarcodeScannerVisible] = useState(false);
 
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -84,6 +86,22 @@ function CashierScreen() {
     setSnackbarMessage(msg);
     setSnackbarVisible(true);
   };
+
+  const handleBarcodeScanned = useCallback(
+    (barcode: string) => {
+      setBarcodeScannerVisible(false);
+      const found = inventoryItems.find(item => item.barcode === barcode);
+      if (found) {
+        const isProduct = found.type === 'PRODUCT';
+        addToCart(found, 1, isProduct ? 'OUT' : 'IN');
+        showFeedback(`${found.name} ditambahkan via barcode`);
+      } else {
+        setSearchQuery(barcode);
+        showFeedback(`Barcode ${barcode} tidak ditemukan`);
+      }
+    },
+    [inventoryItems, addToCart],
+  );
 
   const manualPriceValue = parseInt(manualPriceRaw, 10) || 0;
   const manualSubtotal = manualPriceValue * manualQty;
@@ -308,7 +326,7 @@ function CashierScreen() {
           size={22}
           iconColor="#000000"
           style={styles.headerBtn}
-          onPress={() => showFeedback('Pindai Barcode siap (Demo)')}
+          onPress={() => setBarcodeScannerVisible(true)}
         />
       </View>
 
@@ -781,6 +799,12 @@ function CashierScreen() {
           </View>
         </View>
       </Modal>
+
+      <BarcodeScannerModal
+        visible={barcodeScannerVisible}
+        onClose={() => setBarcodeScannerVisible(false)}
+        onBarcodeScanned={handleBarcodeScanned}
+      />
 
       <Snackbar
         visible={snackbarVisible}
