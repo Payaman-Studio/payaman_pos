@@ -76,7 +76,7 @@ function ProductFormScreen() {
   const [snackbarVisible, setSnackbarVisible] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
 
-  // Load data lama jika dalam mode Edit
+  // Load data lama jika dalam mode Edit — hanya sekali saat mount
   useEffect(() => {
     if (isEditMode && itemId && itemType) {
       const item = getItem(itemId, itemType);
@@ -96,7 +96,7 @@ function ProductFormScreen() {
         }
       }
     }
-  }, [isEditMode, itemId, itemType, getItem]);
+  }, [isEditMode, itemId, itemType]);
 
   const handleSave = async () => {
     if (!name.trim()) return;

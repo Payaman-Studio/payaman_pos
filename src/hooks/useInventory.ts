@@ -1,3 +1,4 @@
+import { useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import * as dbProducts from '../database/dbProducts';
 import * as dbCommodities from '../database/dbCommodities';
@@ -144,9 +145,12 @@ export function useInventory(filters?: UseInventoryFilters) {
   const categories = ['Semua', ...uniqueCategories];
 
   // Ambil single item
-  const getItem = (id: string, type: 'PRODUCT' | 'COMMODITY'): InventoryItem | undefined => {
-    return allItems.find(item => item.id === id && item.type === type);
-  };
+  const getItem = useCallback(
+    (id: string, type: 'PRODUCT' | 'COMMODITY'): InventoryItem | undefined => {
+      return allItems.find(item => item.id === id && item.type === type);
+    },
+    [allItems],
+  );
 
   // Tambah produk mutasi
   const addProductMutation = useMutation({
