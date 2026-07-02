@@ -10,6 +10,7 @@ import {
   Platform,
   Modal,
   ScrollView,
+  Alert,
 } from 'react-native';
 import {
   Text,
@@ -310,23 +311,24 @@ function CashierScreen() {
 
       {/* Header Kasir */}
       <View style={styles.headerBar}>
+        <Text style={styles.headerTitle}>WAROENG</Text>
         <IconButton
-          icon="sync"
+          icon="cart-off"
           size={22}
           iconColor="#000000"
           style={styles.headerBtn}
           onPress={() => {
-            clearCart();
-            showFeedback('Keranjang dikosongkan');
+            Alert.alert('Konfirmasi', 'Apakah Anda ingin ?', [
+              { text: 'Batal', style: 'cancel' },
+              {
+                text: 'Ya',
+                onPress: () => {
+                  clearCart();
+                  showFeedback('Keranjang dikosongkan');
+                },
+              },
+            ]);
           }}
-        />
-        <Text style={styles.headerTitle}>WAROENG</Text>
-        <IconButton
-          icon="barcode-scan"
-          size={22}
-          iconColor="#000000"
-          style={styles.headerBtn}
-          onPress={() => setBarcodeScannerVisible(true)}
         />
       </View>
 
@@ -347,7 +349,13 @@ function CashierScreen() {
                 activeOutlineColor="#000000"
                 style={styles.searchInput}
                 contentStyle={styles.searchInputContent}
-                left={<TextInput.Icon icon="barcode" color="#9CA3AF" />}
+                left={
+                  <TextInput.Icon
+                    icon="barcode-scan"
+                    color="#9CA3AF"
+                    onPress={() => setBarcodeScannerVisible(true)}
+                  />
+                }
                 right={
                   searchQuery ? (
                     <TextInput.Icon
@@ -830,7 +838,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 0.5,
     borderBottomColor: '#E5E7EB',
     backgroundColor: '#FFFFFF',
-    paddingHorizontal: 4,
+    paddingHorizontal: 14,
   },
   headerTitle: {
     fontSize: 16,

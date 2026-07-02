@@ -28,6 +28,7 @@ import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 
 import { useInventory } from '../hooks/useInventory';
 import { RootStackParamList } from '../navigation/types';
+import BarcodeScannerModal from '../components/BarcodeScannerModal';
 
 type ProductFormScreenRouteProp = RouteProp<RootStackParamList, 'ProductForm'>;
 type ProductFormScreenNavigationProp = NativeStackNavigationProp<
@@ -71,6 +72,7 @@ function ProductFormScreen() {
   // UI States
   const [categoryMenuVisible, setCategoryMenuVisible] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [barcodeScannerVisible, setBarcodeScannerVisible] = useState(false);
   const [snackbarVisible, setSnackbarVisible] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
 
@@ -359,7 +361,12 @@ function ProductFormScreen() {
                 style={styles.textInput}
                 contentStyle={styles.textInputContent}
                 right={
-                  <TextInput.Icon icon="barcode" color="#000000" size={20} />
+                  <TextInput.Icon
+                    icon="barcode-scan"
+                    color="#000000"
+                    size={20}
+                    onPress={() => setBarcodeScannerVisible(true)}
+                  />
                 }
               />
             </View>
@@ -530,6 +537,15 @@ function ProductFormScreen() {
           </Button>
         </View>
       </KeyboardAvoidingView>
+
+      <BarcodeScannerModal
+        visible={barcodeScannerVisible}
+        onClose={() => setBarcodeScannerVisible(false)}
+        onBarcodeScanned={(code) => {
+          setBarcode(code);
+          setBarcodeScannerVisible(false);
+        }}
+      />
 
       <Snackbar
         visible={snackbarVisible}
