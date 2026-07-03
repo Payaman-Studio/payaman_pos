@@ -6,7 +6,7 @@ const CREATE_PRODUCTS = `CREATE TABLE IF NOT EXISTS products (
     selling_price INTEGER NOT NULL,
     stock INTEGER NOT NULL DEFAULT 0,
     category VARCHAR(100),
-    min_stock INTEGER NOT NULL DEFAULT 5,
+    min_stock INTEGER NOT NULL DEFAULT 1,
     photo VARCHAR(500)
   )`;
 

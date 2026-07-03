@@ -70,7 +70,7 @@ function TabNavigator() {
         name="Cashier"
         component={CashierScreen}
         options={{
-          title: 'WAROENG',
+          title: 'LINLIN',
           tabBarLabel: 'Kasir',
           tabBarIcon: cashierIcon,
         }}

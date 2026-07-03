@@ -451,13 +451,14 @@ function CashierScreen() {
               </Text>
             </View>
 
-            <View style={styles.summaryRow}>
-              <Text style={styles.summaryLabel}>Total Beli Komoditas</Text>
-              <Text style={[styles.summaryValue, styles.textGreen]}>
-                {formatRupiah(-totalPurchases)}
-              </Text>
-            </View>
-            <Divider style={{ marginVertical: 8 }} />
+            {totalPurchases > 0 && (
+              <View style={styles.summaryRow}>
+                <Text style={styles.summaryLabel}>Total Beli Komoditas</Text>
+                <Text style={[styles.summaryValue, styles.textGreen]}>
+                  {formatRupiah(-totalPurchases)}
+                </Text>
+              </View>
+            )}
 
             <View style={styles.netAmountRow}>
               <View style={styles.netLabelLeft}>
@@ -486,7 +487,6 @@ function CashierScreen() {
                 {formatRupiah(finalAmount)}
               </Text>
             </View>
-            <Divider style={{ marginVertical: 8 }} />
 
             {isWarungPay && (
               <View style={styles.summaryRow}>
@@ -578,6 +578,7 @@ function CashierScreen() {
               keyboardType="numeric"
               mode="outlined"
               activeOutlineColor="#000000"
+              selectTextOnFocus
               style={styles.dialogInput}
             />
           </Dialog.Content>
@@ -1104,7 +1105,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 8,
     marginTop: 4,
   },
   netLabelLeft: {

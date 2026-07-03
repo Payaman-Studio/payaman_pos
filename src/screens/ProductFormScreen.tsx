@@ -430,6 +430,7 @@ function ProductFormScreen() {
                 mode="outlined"
                 outlineColor="#E5E7EB"
                 activeOutlineColor="#000000"
+                selectTextOnFocus
                 style={styles.textInput}
                 contentStyle={styles.textInputContent}
                 left={
@@ -448,6 +449,7 @@ function ProductFormScreen() {
               mode="outlined"
               outlineColor="#E5E7EB"
               activeOutlineColor="#000000"
+              selectTextOnFocus
               style={styles.textInput}
               contentStyle={styles.textInputContent}
               left={
@@ -467,6 +469,7 @@ function ProductFormScreen() {
                   mode="outlined"
                   outlineColor="#E5E7EB"
                   activeOutlineColor="#000000"
+                  selectTextOnFocus
                   style={styles.textInput}
                   contentStyle={styles.textInputContent}
                 />
@@ -481,6 +484,7 @@ function ProductFormScreen() {
                   mode="outlined"
                   outlineColor="#E5E7EB"
                   activeOutlineColor="#000000"
+                  selectTextOnFocus
                   style={styles.textInput}
                   contentStyle={styles.textInputContent}
                   textColor="#DC2626"
