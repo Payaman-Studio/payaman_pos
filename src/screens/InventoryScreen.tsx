@@ -8,8 +8,9 @@ import {
   ScrollView,
   StatusBar,
   Alert,
+  RefreshControl,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
 import {
   Text,
   TextInput,
@@ -95,7 +96,6 @@ function ProductThumbnail({
 function InventoryScreen() {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const insets = useSafeAreaInsets();
 
   // States untuk filter
   const [search, setSearch] = useState('');
@@ -107,6 +107,8 @@ function InventoryScreen() {
     lowStockCount,
     categories,
     isLoading,
+    isRefetching,
+    refetch,
     deleteProduct,
     deleteCommodity,
   } = useInventory({
@@ -222,14 +224,8 @@ function InventoryScreen() {
   };
 
   return (
-    <View style={[styles.safeArea, { paddingTop: insets.top }]}>
+    <View style={styles.safeArea}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
-
-      {/* Custom Header Toko */}
-      <View style={styles.headerBar}>
-        <Icon name="store" size={22} color="#000000" />
-        <Text style={styles.headerTitle}>WAROENG</Text>
-      </View>
 
       <View style={styles.container}>
         {/* Search Input */}
@@ -324,6 +320,9 @@ function InventoryScreen() {
             keyExtractor={item => item.id}
             contentContainerStyle={styles.listContainer}
             showsVerticalScrollIndicator={false}
+            refreshControl={
+              <RefreshControl refreshing={isRefetching} onRefresh={refetch} />
+            }
           />
         )}
 
@@ -343,22 +342,6 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: '#FFFFFF',
-  },
-  headerBar: {
-    height: 52,
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    borderBottomWidth: 0.5,
-    borderBottomColor: '#E5E7EB',
-    backgroundColor: '#FFFFFF',
-  },
-  headerTitle: {
-    fontSize: 16,
-    fontWeight: '800',
-    letterSpacing: 1.2,
-    marginLeft: 8,
-    color: '#000000',
   },
   container: {
     flex: 1,

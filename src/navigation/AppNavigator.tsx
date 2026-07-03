@@ -8,6 +8,7 @@ import CashierScreen from '../screens/CashierScreen';
 import InventoryScreen from '../screens/InventoryScreen';
 import ReportScreen from '../screens/ReportScreen';
 import ProductFormScreen from '../screens/ProductFormScreen';
+import TransactionListScreen from '../screens/TransactionListScreen';
 import { RootTabParamList, RootStackParamList } from './types';
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
@@ -25,13 +26,29 @@ const reportIcon = ({ color, size }: { color: string; size: number }) => (
   <Icon name="chart-bar" color={color} size={size} />
 );
 
+const headerStyle = {
+  backgroundColor: '#FFFFFF',
+  elevation: 0,
+  shadowOpacity: 0,
+  borderBottomWidth: 0.5,
+  borderBottomColor: '#E5E7EB',
+};
+
+const headerTitleStyle = {
+  fontSize: 20,
+  fontWeight: '600' as const,
+  color: '#000000',
+};
+
 function TabNavigator() {
   const insets = useSafeAreaInsets();
 
   return (
     <Tab.Navigator
       screenOptions={{
-        headerShown: false,
+        headerShown: true,
+        headerStyle,
+        headerTitleStyle,
         tabBarActiveTintColor: '#000000',
         tabBarInactiveTintColor: '#9CA3AF',
         tabBarStyle: {
@@ -53,6 +70,7 @@ function TabNavigator() {
         name="Cashier"
         component={CashierScreen}
         options={{
+          title: 'WAROENG',
           tabBarLabel: 'Kasir',
           tabBarIcon: cashierIcon,
         }}
@@ -61,6 +79,7 @@ function TabNavigator() {
         name="Inventory"
         component={InventoryScreen}
         options={{
+          title: 'Inventori',
           tabBarLabel: 'Inventori',
           tabBarIcon: inventoryIcon,
         }}
@@ -69,6 +88,7 @@ function TabNavigator() {
         name="Report"
         component={ReportScreen}
         options={{
+          title: 'Laporan',
           tabBarLabel: 'Laporan',
           tabBarIcon: reportIcon,
         }}
@@ -76,6 +96,14 @@ function TabNavigator() {
     </Tab.Navigator>
   );
 }
+
+const stackHeaderStyle = {
+  backgroundColor: '#FFFFFF',
+  elevation: 0,
+  shadowOpacity: 0,
+  borderBottomWidth: 0.5,
+  borderBottomColor: '#E5E7EB',
+};
 
 function AppNavigator() {
   return (
@@ -85,7 +113,36 @@ function AppNavigator() {
       }}
     >
       <Stack.Screen name="MainTabs" component={TabNavigator} />
-      <Stack.Screen name="ProductForm" component={ProductFormScreen} />
+      <Stack.Screen
+        name="ProductForm"
+        component={ProductFormScreen}
+        options={({ route }) => ({
+          headerShown: true,
+          headerStyle: stackHeaderStyle,
+          headerTitleStyle: {
+            fontSize: 16,
+            fontWeight: '800' as const,
+            color: '#000000',
+          },
+          title: route.params?.itemId ? 'Edit Produk' : 'Tambah Produk',
+          headerTintColor: '#000000',
+        })}
+      />
+      <Stack.Screen
+        name="TransactionList"
+        component={TransactionListScreen}
+        options={{
+          headerShown: true,
+          headerStyle: stackHeaderStyle,
+          headerTitleStyle: {
+            fontSize: 16,
+            fontWeight: '800' as const,
+            color: '#000000',
+          },
+          title: 'Riwayat Transaksi',
+          headerTintColor: '#000000',
+        }}
+      />
     </Stack.Navigator>
   );
 }

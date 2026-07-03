@@ -143,9 +143,9 @@ export function useCashier() {
       return tx;
     },
     onSuccess: () => {
-      // Refresh queries data inventori terbaru
       queryClient.invalidateQueries({ queryKey: ['products'] });
       queryClient.invalidateQueries({ queryKey: ['commodities'] });
+      queryClient.invalidateQueries({ queryKey: ['transactions'] });
       clearCart();
     },
   });

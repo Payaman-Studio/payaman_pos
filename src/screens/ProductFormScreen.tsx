@@ -17,7 +17,6 @@ import {
   Switch,
   Button,
   Menu,
-  IconButton,
   Snackbar,
 } from 'react-native-paper';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
@@ -226,28 +225,8 @@ function ProductFormScreen() {
   const availableCategories = categories.filter(cat => cat !== 'Semua');
 
   return (
-    <View
-      style={[
-        styles.safeArea,
-        { paddingTop: insets.top, paddingBottom: insets.bottom },
-      ]}
-    >
+    <View style={[styles.safeArea, { paddingBottom: insets.bottom }]}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
-
-      {/* Header Bar */}
-      <View style={styles.headerBar}>
-        <IconButton
-          icon="arrow-left"
-          size={24}
-          iconColor="#000000"
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
-        />
-        <Text style={styles.headerTitle}>
-          {isEditMode ? 'Edit Produk' : 'Tambah Produk'}
-        </Text>
-        <View style={styles.headerSpacer} />
-      </View>
 
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -608,27 +587,6 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: '#FFFFFF',
-  },
-  headerBar: {
-    height: 56,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    borderBottomWidth: 0.5,
-    borderBottomColor: '#E5E7EB',
-    backgroundColor: '#FFFFFF',
-    paddingHorizontal: 4,
-  },
-  backButton: {
-    margin: 0,
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#000000',
-  },
-  headerSpacer: {
-    width: 48,
   },
   flexContainer: {
     flex: 1,

@@ -157,3 +157,14 @@ export function closeDatabase(): void {
 export function generateId(): string {
   return uuidv4();
 }
+
+export function getDatabasePath(): string | null {
+  const dbConn = getDatabase();
+  try {
+    const { results } = dbConn.execute('PRAGMA database_list');
+    const file = (results[0] as Record<string, unknown>)?.file;
+    return typeof file === 'string' && file.length > 0 ? file : null;
+  } catch {
+    return null;
+  }
+}

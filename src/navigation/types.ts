@@ -12,4 +12,5 @@ export type RootStackParamList = {
     itemId?: string;
     itemType?: 'PRODUCT' | 'COMMODITY';
   } | undefined;
+  TransactionList: undefined;
 };

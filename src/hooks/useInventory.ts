@@ -212,6 +212,8 @@ export function useInventory(filters?: UseInventoryFilters) {
     },
   });
 
+  const isRefetching = productsQuery.isRefetching || commoditiesQuery.isRefetching;
+
   const refetch = () => {
     productsQuery.refetch();
     commoditiesQuery.refetch();
@@ -222,6 +224,7 @@ export function useInventory(filters?: UseInventoryFilters) {
     lowStockCount,
     categories,
     isLoading,
+    isRefetching,
     error,
     refetch,
     getItem,

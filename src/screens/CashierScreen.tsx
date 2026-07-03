@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useLayoutEffect } from 'react';
 import {
   View,
   Image,
@@ -24,6 +24,7 @@ import {
   Divider,
 } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 import { useCashier, CartItem } from '../hooks/useCashier';
@@ -32,6 +33,7 @@ import BarcodeScannerModal from '../components/BarcodeScannerModal';
 
 function CashierScreen() {
   const insets = useSafeAreaInsets();
+  const navigation = useNavigation();
 
   // Custom Hooks
   const { inventoryItems } = useInventory();
@@ -83,10 +85,37 @@ function CashierScreen() {
     return isNegative ? `-${formatted}` : formatted;
   };
 
-  const showFeedback = (msg: string) => {
+  const showFeedback = useCallback((msg: string) => {
     setSnackbarMessage(msg);
     setSnackbarVisible(true);
-  };
+  }, []);
+
+  const headerRight = useCallback(() => {
+    if (cartItems.length === 0) return undefined;
+    return (
+      <IconButton
+        icon="cart-off"
+        size={22}
+        iconColor="#000000"
+        onPress={() => {
+          Alert.alert('Konfirmasi', 'Apakah Anda ingin ?', [
+            { text: 'Batal', style: 'cancel' },
+            {
+              text: 'Ya',
+              onPress: () => {
+                clearCart();
+                showFeedback('Keranjang dikosongkan');
+              },
+            },
+          ]);
+        }}
+      />
+    );
+  }, [cartItems, clearCart, showFeedback]);
+
+  useLayoutEffect(() => {
+    navigation.setOptions({ headerRight });
+  }, [navigation, headerRight]);
 
   const handleBarcodeScanned = useCallback(
     (barcode: string) => {
@@ -306,31 +335,8 @@ function CashierScreen() {
   const isWarungPay = finalAmount < 0;
 
   return (
-    <View style={[styles.safeArea, { paddingTop: insets.top }]}>
+    <View style={styles.safeArea}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
-
-      {/* Header Kasir */}
-      <View style={styles.headerBar}>
-        <Text style={styles.headerTitle}>WAROENG</Text>
-        <IconButton
-          icon="cart-off"
-          size={22}
-          iconColor="#000000"
-          style={styles.headerBtn}
-          onPress={() => {
-            Alert.alert('Konfirmasi', 'Apakah Anda ingin ?', [
-              { text: 'Batal', style: 'cancel' },
-              {
-                text: 'Ya',
-                onPress: () => {
-                  clearCart();
-                  showFeedback('Keranjang dikosongkan');
-                },
-              },
-            ]);
-          }}
-        />
-      </View>
 
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -829,25 +835,6 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: '#FFFFFF',
-  },
-  headerBar: {
-    height: 52,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    borderBottomWidth: 0.5,
-    borderBottomColor: '#E5E7EB',
-    backgroundColor: '#FFFFFF',
-    paddingHorizontal: 14,
-  },
-  headerTitle: {
-    fontSize: 16,
-    fontWeight: '800',
-    letterSpacing: 1.2,
-    color: '#000000',
-  },
-  headerBtn: {
-    margin: 0,
   },
   flexContainer: {
     flex: 1,

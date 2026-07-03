@@ -1,21 +1,68 @@
-import { ScrollView, View, StyleSheet, StatusBar, TouchableOpacity } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useState, useCallback, useLayoutEffect } from 'react';
+import { ScrollView, View, StyleSheet, StatusBar, TouchableOpacity, RefreshControl } from 'react-native';
+
 import { Text, IconButton } from 'react-native-paper';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useRecentTransactions, useTransactionSummary } from '../hooks/useTransactions';
+import type { RootStackParamList } from '../navigation/types';
+import DataManagementModal from '../components/DataManagementModal';
+
+const formatRupiah = (num: number) => {
+  return 'Rp ' + num.toLocaleString('id-ID');
+};
+
+const formatTime = (dateStr: string) => {
+  const d = new Date(dateStr);
+  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+};
+
+const shortId = (id: string) => {
+  return '#' + id.slice(0, 7).toUpperCase();
+};
 
 function ReportScreen() {
-  const insets = useSafeAreaInsets();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const {
+    data: summary,
+    isRefetching: summaryRefetching,
+    refetch: summaryRefetch,
+  } = useTransactionSummary();
+  const {
+    data: transactions,
+    isRefetching: transactionsRefetching,
+    refetch: transactionsRefetch,
+  } = useRecentTransactions(5);
+  const [dataModalVisible, setDataModalVisible] = useState(false);
+
+  const isRefetching = summaryRefetching || transactionsRefetching;
+  const onRefresh = useCallback(() => {
+    summaryRefetch();
+    transactionsRefetch();
+  }, [summaryRefetch, transactionsRefetch]);
+
+  const headerRight = useCallback(
+    () => (
+      <TouchableOpacity onPress={() => setDataModalVisible(true)}>
+        <IconButton icon="database-cog-outline" size={24} />
+      </TouchableOpacity>
+    ),
+    [setDataModalVisible],
+  );
+
+  useLayoutEffect(() => {
+    navigation.setOptions({ headerRight });
+  }, [navigation, headerRight]);
 
   return (
     <View style={styles.flexContainer}>
-      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
-      <View style={[styles.header, { paddingTop: insets.top }]}>
-        <View style={styles.headerTitleContainer}>
-          <IconButton icon="store" size={24} />
-          <Text variant="headlineMedium">Laporan</Text>
-        </View>
-        <IconButton icon="dots-vertical" size={24} />
-      </View>
-      <ScrollView style={styles.container}>
+      <StatusBar barStyle="dark-content" backgroundColor="#f2f2f2" />
+      <ScrollView
+        style={styles.container}
+        refreshControl={
+          <RefreshControl refreshing={isRefetching} onRefresh={onRefresh} />
+        }
+      >
         {/* Date Filter */}
         <View style={styles.dateFilterContainer}>
           <TouchableOpacity style={styles.dateFilterButtonActive}>
@@ -36,7 +83,9 @@ function ReportScreen() {
         <View style={[styles.card, styles.totalSalesCard]}>
           <View>
             <Text>TOTAL PENJUALAN</Text>
-            <Text variant="headlineLarge">Rp 4.250.000</Text>
+            <Text variant="headlineLarge">
+              {summary ? formatRupiah(summary.totalSales) : 'Rp 0'}
+            </Text>
           </View>
           <View style={styles.cashIconPlaceholder} />
         </View>
@@ -44,109 +93,65 @@ function ReportScreen() {
         <View style={styles.summaryCardsContainer}>
           <View style={styles.summaryCard}>
             <Text>TRANSAKSI</Text>
-            <Text variant="titleLarge">142</Text>
-            <View style={styles.trendContainer}>
-                <IconButton icon="arrow-up" size={16} color="green" style={{ margin: 0, padding: 0 }} />
-                <Text style={styles.greenText}>+12% vs kemarin</Text>
-            </View>
+            <Text variant="titleLarge">{summary?.totalTransactions ?? 0}</Text>
           </View>
           <View style={[styles.summaryCard, styles.greenBorder]}>
-            <Text>KEUNTUNGAN</Text>
-            <Text variant="titleLarge">Rp 842.500</Text>
-            <Text>Estimasi bersih</Text>
-          </View>
-        </View>
-
-        {/* Sales Breakdown */}
-        <View style={styles.card}>
-          <Text variant="titleMedium">Pemisahan Penjualan</Text>
-          <View style={styles.progressBarContainer}>
-            <Text>Penjualan Toko</Text>
-            <Text>75%</Text>
-          </View>
-          <View style={styles.progressBar}>
-            <View style={[styles.progressBarFill, { width: '75%' }]} />
-          </View>
-          <View style={styles.progressBarContainer}>
-            <View style={styles.bulletAndText}>
-                <View style={styles.greenBullet} />
-                <Text>Komoditas Warga</Text>
-            </View>
-            <Text>25%</Text>
-          </View>
-          <View style={styles.progressBar}>
-            <View style={[styles.progressBarFillGreen, { width: '25%' }]} />
-          </View>
-          <View style={styles.salesValueContainer}>
-            <View>
-              <Text>Standard</Text>
-              <Text>Rp 3.187.500</Text>
-            </View>
-            <View>
-              <Text>Citizen</Text>
-              <Text style={styles.greenText}>Rp 1.062.500</Text>
-            </View>
+            <Text>TOTAL NET</Text>
+            <Text variant="titleLarge">
+              {summary ? formatRupiah(summary.totalNet) : 'Rp 0'}
+            </Text>
+            <Text>Pendapatan bersih</Text>
           </View>
         </View>
 
         {/* Recent Transactions */}
         <View style={styles.transactionsHeader}>
           <Text variant="titleLarge">Transaksi Terakhir</Text>
-          <Text style={styles.linkText}>Lihat Semua</Text>
+          <TouchableOpacity onPress={() => navigation.navigate('TransactionList')}>
+            <Text style={styles.linkText}>Lihat Semua</Text>
+          </TouchableOpacity>
         </View>
 
-        <View style={styles.transactionCard}>
-          <View>
-            <View style={styles.transactionTagContainer}>
-              <Text style={styles.transactionId}>#TRX-0822</Text>
-              <Text style={styles.tagToko}>TOKO</Text>
-            </View>
-            <Text>14:20 • 3 Items (Beras, Minyak...)</Text>
+        {!transactions || transactions.length === 0 ? (
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyText}>Belum ada transaksi</Text>
           </View>
-          <View style={styles.transactionAmountContainer}>
-            <Text>Rp 85.000</Text>
-            <Text>Cash</Text>
-          </View>
-        </View>
+        ) : (
+          transactions.map((tx) => {
+            const isCitizen = tx.type === 'CITIZEN' || tx.type === 'MIXED';
+            const tagLabel = tx.type === 'CITIZEN' ? 'WARGA' : tx.type === 'MIXED' ? 'CAMPURAN' : 'TOKO';
 
-        <View style={[styles.transactionCard, styles.greenBorderLeft]}>
-          <View>
-            <View style={styles.transactionTagContainer}>
-              <Text style={styles.transactionId}>#TRX-0821</Text>
-              <Text style={styles.tagCitizen}>CITIZEN</Text>
-            </View>
-            <Text>13:45 • 1 Item (Keripik Tempe Bu Siti)</Text>
-          </View>
-          <View style={styles.transactionAmountContainer}>
-            <Text>Rp 25.000</Text>
-            <Text>QRIS</Text>
-          </View>
-        </View>
-
-        <View style={styles.transactionCard}>
-          <View>
-            <View style={styles.transactionTagContainer}>
-              <Text style={styles.transactionId}>#TRX-0820</Text>
-              <Text style={styles.tagUnpaid}>UNPAID</Text>
-            </View>
-            <Text>12:10 • 5 Items (Gula, Teh, Kopi...)</Text>
-          </View>
-          <View style={styles.transactionAmountContainer}>
-            <Text>Rp 122.500</Text>
-            <Text>Tempo 3 Hari</Text>
-          </View>
-        </View>
-
-        {/* Weekly Insight */}
-        <View style={styles.weeklyInsightCard}>
-          <Text style={styles.weeklyInsightTitle}>Insight Mingguan</Text>
-          <Text style={styles.weeklyInsightText}>
-            Produk 'Minyak Goreng Kita' menyumbang 15% dari total volume penjualan hari ini.
-          </Text>
-          <Text style={styles.detailButton}>Detail Per Item</Text>
-        </View>
+            return (
+              <View
+                key={tx.id}
+                style={[styles.transactionCard, isCitizen ? styles.greenBorderLeft : null]}
+              >
+                <View>
+                  <View style={styles.transactionTagContainer}>
+                    <Text style={styles.transactionId}>{shortId(tx.id)}</Text>
+                    <Text style={isCitizen ? styles.tagCitizen : styles.tagToko}>
+                      {tagLabel}
+                    </Text>
+                  </View>
+                  <Text>
+                    {formatTime(tx.created_at)} &bull; {tx.itemCount} Item
+                    {tx.itemNames ? ` (${tx.itemNames})` : ''}
+                  </Text>
+                </View>
+                <View style={styles.transactionAmountContainer}>
+                  <Text>{formatRupiah(tx.net_amount)}</Text>
+                </View>
+              </View>
+            );
+          })
+        )}
 
       </ScrollView>
+
+      <DataManagementModal
+        visible={dataModalVisible}
+        onDismiss={() => setDataModalVisible(false)}
+      />
     </View>
   );
 }
@@ -160,20 +165,6 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 16,
     backgroundColor: '#f2f2f2',
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingBottom: 10,
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-  },
-  headerTitleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
   },
   dateFilterContainer: {
     flexDirection: 'row',
@@ -280,6 +271,17 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: '#eee',
     paddingTop: 10,
+  },
+  emptyContainer: {
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    padding: 32,
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  emptyText: {
+    color: '#9CA3AF',
+    fontSize: 14,
   },
   greenText: {
     color: '#4CAF50',
