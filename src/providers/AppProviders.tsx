@@ -7,6 +7,7 @@ import { useSetAtom } from 'jotai';
 import { getDatabase } from '../database';
 import { isDatabaseReadyAtom } from '../store';
 import AppNavigator from '../navigation/AppNavigator';
+import { CashierProvider } from '../contexts/CashierContext';
 
 const queryClient = new QueryClient();
 
@@ -31,7 +32,9 @@ function AppProviders() {
       <PaperProvider theme={theme}>
         <DatabaseInitializer>
           <NavigationContainer>
-            <AppNavigator />
+            <CashierProvider>
+              <AppNavigator />
+            </CashierProvider>
           </NavigationContainer>
         </DatabaseInitializer>
       </PaperProvider>

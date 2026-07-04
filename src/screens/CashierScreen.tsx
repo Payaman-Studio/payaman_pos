@@ -24,10 +24,12 @@ import {
   Snackbar,
 } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
-import { useCashier, CartItem } from '../hooks/useCashier';
 import { useInventory } from '../hooks/useInventory';
+import type { CartItem } from '../hooks/useCashier';
+import { useCashierContext } from '../contexts/CashierContext';
 import BarcodeScannerModal from '../components/BarcodeScannerModal';
 import { CartItemCard } from '../components/cashier/CartItemCard';
 import { EditQtyDialog } from '../components/cashier/EditQtyDialog';
@@ -39,10 +41,12 @@ import {
   fontSize,
   fontWeight,
 } from '../constants/theme';
+import { RootStackParamList } from '../navigation/types';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 function CashierScreen() {
-  const navigation = useNavigation();
+  const navigation =
+    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
   const { inventoryItems } = useInventory();
   const {
@@ -51,7 +55,6 @@ function CashierScreen() {
     totalSales,
     totalPurchases,
     finalAmount,
-    changeAmount,
     setCashReceived,
     addToCart,
     updateQuantity,
@@ -59,7 +62,7 @@ function CashierScreen() {
     clearCart,
     checkout,
     isSubmitting,
-  } = useCashier();
+  } = useCashierContext();
 
   const [manualModalVisible, setManualModalVisible] = useState(false);
   const [editQtyModalVisible, setEditQtyModalVisible] = useState(false);
@@ -191,6 +194,10 @@ function CashierScreen() {
     } catch {
       showFeedback('Gagal menyelesaikan transaksi');
     }
+  };
+
+  const handleOpenPayment = () => {
+    navigation.navigate('Payment');
   };
 
   const searchResults = useMemo(
@@ -328,14 +335,16 @@ function CashierScreen() {
 
             {cartItems.length > 0 && (
               <View style={styles.summaryContainer}>
-                <View style={styles.summaryRow}>
-                  <Text style={styles.summaryLabel}>Total Belanja</Text>
-                  <Text style={styles.summaryValue}>
-                    {formatRupiah(totalSales)}
-                  </Text>
-                </View>
+                {totalSales > 0 && (
+                  <View style={styles.summaryRow}>
+                    <Text style={styles.summaryLabel}>Total Belanja</Text>
+                    <Text style={styles.summaryValue}>
+                      {formatRupiah(totalSales)}
+                    </Text>
+                  </View>
+                )}
 
-                {totalPurchases > 0 && (
+                {totalPurchases > 0 && totalSales > 0 && (
                   <View style={styles.summaryRow}>
                     <Text style={styles.summaryLabel}>
                       Total Beli Komoditas
@@ -399,44 +408,12 @@ function CashierScreen() {
                   </View>
                 )}
 
-                {!isWarungPay && finalAmount > 0 && (
-                  <View style={styles.summaryRow}>
-                    <Text style={styles.summaryLabel}>Tunai Diterima</Text>
-                    <TextInput
-                      selectTextOnFocus
-                      value={cashReceived}
-                      onChangeText={setCashReceived}
-                      keyboardType="numeric"
-                      mode="outlined"
-                      outlineColor={colors.gray300}
-                      activeOutlineColor={colors.black}
-                      style={styles.cashInput}
-                      contentStyle={styles.cashInputContent}
-                      left={
-                        <TextInput.Affix
-                          text="Rp "
-                          textStyle={styles.affixStyle}
-                        />
-                      }
-                    />
-                  </View>
-                )}
-
-                {!isWarungPay && finalAmount > 0 && (
-                  <View style={styles.summaryRow}>
-                    <Text style={styles.summaryLabel}>KEMBALIAN</Text>
-                    <Text style={styles.changeAmountText}>
-                      {changeAmount.toLocaleString('id-ID')}
-                    </Text>
-                  </View>
-                )}
-
                 <View style={styles.divider} />
 
                 <Button
                   mode="contained"
                   icon={isWarungPay ? 'cash-multiple' : 'cash-register'}
-                  onPress={handleCheckout}
+                  onPress={isWarungPay ? handleCheckout : handleOpenPayment}
                   disabled={isSubmitting}
                   loading={isSubmitting}
                   style={[

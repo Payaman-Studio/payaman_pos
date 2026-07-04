@@ -1,4 +1,4 @@
-import { View, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { Text, TextInput, Button, Dialog, Portal } from 'react-native-paper';
 import { colors, spacing, borderRadius, fontSize, fontWeight } from '../../constants/theme';
 import type { CartItem } from '../../hooks/useCashier';

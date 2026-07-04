@@ -13,4 +13,5 @@ export type RootStackParamList = {
     itemType?: 'PRODUCT' | 'COMMODITY';
   } | undefined;
   TransactionList: undefined;
+  Payment: undefined;
 };
