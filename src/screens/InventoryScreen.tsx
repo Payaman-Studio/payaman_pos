@@ -1,106 +1,64 @@
-import { useState, useCallback, useMemo, useRef } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import {
-  View,
-  Image,
-  StyleSheet,
-  SectionList,
   FlatList,
-  TouchableOpacity,
-  ScrollView,
-  StatusBar,
-  Alert,
+  Image,
   RefreshControl,
+  ScrollView,
+  SectionList,
+  StatusBar,
+  StyleSheet,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 
-import {
-  Text,
-  TextInput,
-  Card,
-  FAB,
-  ActivityIndicator,
-  Menu,
-} from 'react-native-paper';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import {
+  ActivityIndicator,
+  Card,
+  FAB,
+  Menu,
+  Text,
+  TextInput,
+} from 'react-native-paper';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
-import { useInventory, InventoryItem } from '../hooks/useInventory';
-import { RootStackParamList } from '../navigation/types';
-import { groupByAlphabet } from '../utils/groupByAlphabet';
 import AlphabetIndex from '../components/inventory/AlphabetIndex';
 import {
-  colors,
-  spacing,
   borderRadius,
+  colors,
   fontSize,
   fontWeight,
+  spacing,
 } from '../constants/theme';
+import { InventoryItem, useInventory } from '../hooks/useInventory';
+import { RootStackParamList } from '../navigation/types';
+import { groupByAlphabet } from '../utils/groupByAlphabet';
 
 type SortBy = 'name' | 'stock' | 'price';
 
-function ProductThumbnail({
-  name,
-  category,
-  type,
-  photo,
-}: {
-  name: string;
-  category: string | null;
-  type: 'PRODUCT' | 'COMMODITY';
-  photo?: string | null;
-}) {
-  let backgroundColor = colors.gray100;
-  let iconName = 'package-variant';
-  let iconColor = colors.gray400;
+function ProductThumbnail({ photo }: { photo?: string | null }) {
+  const [imageError, setImageError] = useState(false);
 
-  const lowerName = name.toLowerCase();
-  const lowerCat = category?.toLowerCase() || '';
+  const showPlaceholder = !photo || imageError;
 
-  if (
-    lowerCat.includes('sayur') ||
-    lowerName.includes('bayam') ||
-    lowerName.includes('kangkung')
-  ) {
-    backgroundColor = colors.categoryVegetable;
-    iconName = 'leaf';
-    iconColor = colors.green600;
-  } else if (lowerName.includes('minyak') || lowerName.includes('goreng')) {
-    backgroundColor = colors.categoryOil;
-    iconName = 'oil';
-    iconColor = colors.amber;
-  } else if (lowerName.includes('beras') || lowerName.includes('premium')) {
-    backgroundColor = colors.categoryRice;
-    iconName = 'barley';
-    iconColor = colors.orangeDark;
-  } else if (lowerName.includes('telur')) {
-    backgroundColor = colors.categoryEgg;
-    iconName = 'egg';
-    iconColor = colors.orange;
-  } else if (lowerName.includes('gula')) {
-    backgroundColor = colors.categorySugar;
-    iconName = 'grain';
-    iconColor = colors.blue;
-  } else if (
-    lowerCat.includes('camilan') ||
-    lowerName.includes('krupuk') ||
-    lowerName.includes('keripik')
-  ) {
-    backgroundColor = colors.categorySnack;
-    iconName = 'cookie';
-    iconColor = colors.pink;
-  } else if (type === 'COMMODITY') {
-    backgroundColor = colors.categoryCommodity;
-    iconName = 'fruit-grapes';
-    iconColor = colors.emerald;
-  }
-
-  if (photo) {
-    return <Image source={{ uri: photo }} style={styles.thumbnail} />;
+  if (!showPlaceholder) {
+    return (
+      <Image
+        source={{ uri: photo }}
+        style={styles.thumbnail}
+        onError={() => setImageError(true)}
+      />
+    );
   }
 
   return (
-    <View style={[styles.thumbnail, { backgroundColor }]}>
-      <Icon name={iconName} size={20} color={iconColor} />
+    <View style={[styles.thumbnail, { backgroundColor: colors.gray100 }]}>
+      <Icon
+        name={photo ? 'package-variant-closed' : 'leaf'}
+        size={20}
+        color={colors.black}
+      />
     </View>
   );
 }
@@ -113,7 +71,6 @@ function InventoryScreen() {
   const [selectedCategory, setSelectedCategory] = useState('Semua');
   const [lowStockOnly, setLowStockOnly] = useState(false);
   const [sortBy, setSortBy] = useState<SortBy>('name');
-  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [sortMenuVisible, setSortMenuVisible] = useState(false);
 
   const sectionListRef =
@@ -126,8 +83,6 @@ function InventoryScreen() {
     isLoading,
     isRefetching,
     refetch,
-    deleteProduct,
-    deleteCommodity,
   } = useInventory({
     search,
     category: selectedCategory,
@@ -144,30 +99,6 @@ function InventoryScreen() {
   const formatRupiah = useCallback((num: number) => {
     return 'Rp ' + num.toLocaleString('id-ID');
   }, []);
-
-  const handleDelete = useCallback(
-    (item: InventoryItem) => {
-      Alert.alert('Hapus Item', `Yakin ingin menghapus "${item.name}"?`, [
-        { text: 'Batal', style: 'cancel' },
-        {
-          text: 'Hapus',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              if (item.type === 'PRODUCT') {
-                await deleteProduct(item.id);
-              } else {
-                await deleteCommodity(item.id);
-              }
-            } catch {
-              Alert.alert('Gagal', 'Gagal menghapus item');
-            }
-          },
-        },
-      ]);
-    },
-    [deleteProduct, deleteCommodity],
-  );
 
   const handleLetterPress = useCallback(
     (letter: string) => {
@@ -197,12 +128,7 @@ function InventoryScreen() {
           }
         >
           <View style={styles.cardContent}>
-            <ProductThumbnail
-              name={item.name}
-              category={item.category}
-              type={item.type}
-              photo={item.photo}
-            />
+            <ProductThumbnail photo={item.photo} />
 
             <View style={styles.detailsContainer}>
               <Text
@@ -240,47 +166,11 @@ function InventoryScreen() {
                 {formatRupiah(item.price)}
               </Text>
             </View>
-
-            <Menu
-              visible={openMenuId === item.id}
-              onDismiss={() => setOpenMenuId(null)}
-              anchor={
-                <TouchableOpacity
-                  activeOpacity={0.6}
-                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                  onPress={() => setOpenMenuId(item.id)}
-                  style={styles.kebabButton}
-                >
-                  <Icon name="dots-vertical" size={20} color={colors.gray400} />
-                </TouchableOpacity>
-              }
-            >
-              <Menu.Item
-                onPress={() => {
-                  setOpenMenuId(null);
-                  navigation.navigate('ProductForm', {
-                    itemId: item.id,
-                    itemType: item.type,
-                  });
-                }}
-                title="Edit"
-                leadingIcon="pencil"
-              />
-              <Menu.Item
-                onPress={() => {
-                  setOpenMenuId(null);
-                  handleDelete(item);
-                }}
-                title="Hapus"
-                leadingIcon="delete"
-                titleStyle={{ color: colors.red500 }}
-              />
-            </Menu>
           </View>
         </Card>
       );
     },
-    [navigation, openMenuId, handleDelete, formatRupiah],
+    [navigation, formatRupiah],
   );
 
   const renderSectionHeader = useCallback(
@@ -565,7 +455,7 @@ const styles = StyleSheet.create({
   sectionHeader: {
     paddingHorizontal: 4,
     paddingVertical: spacing.xs + 2,
-    backgroundColor: colors.gray50,
+    backgroundColor: colors.gray100,
   },
   sectionHeaderText: {
     fontSize: fontSize.sm,
