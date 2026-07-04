@@ -1,7 +1,13 @@
 import { View, Image, StyleSheet, TouchableOpacity } from 'react-native';
 import { Text, Card } from 'react-native-paper';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { colors, spacing, borderRadius, fontSize, fontWeight } from '../../constants/theme';
+import {
+  colors,
+  spacing,
+  borderRadius,
+  fontSize,
+  fontWeight,
+} from '../../constants/theme';
 import type { CartItem } from '../../hooks/useCashier';
 
 interface CartItemCardProps {
@@ -24,10 +30,7 @@ export function CartItemCard({
 
   return (
     <Card
-      style={[
-        styles.card,
-        isOut ? styles.cardProduct : styles.cardCommodity,
-      ]}
+      style={[styles.card, isOut ? styles.cardProduct : styles.cardCommodity]}
       mode="outlined"
     >
       <View style={styles.content}>
@@ -50,11 +53,7 @@ export function CartItemCard({
                 <Text style={styles.beliTagText}>BELI</Text>
               </View>
             )}
-            <Text
-              variant="titleMedium"
-              style={styles.name}
-              numberOfLines={1}
-            >
+            <Text variant="titleMedium" style={styles.name} numberOfLines={1}>
               {item.name}
             </Text>
           </View>
@@ -127,7 +126,8 @@ const styles = StyleSheet.create({
   },
   content: {
     flexDirection: 'row',
-    padding: spacing.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
     alignItems: 'center',
     gap: 10,
   },
