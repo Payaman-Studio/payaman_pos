@@ -335,24 +335,28 @@ function CashierScreen() {
 
             {cartItems.length > 0 && (
               <View style={styles.summaryContainer}>
-                {totalSales > 0 && (
-                  <View style={styles.summaryRow}>
-                    <Text style={styles.summaryLabel}>Total Belanja</Text>
-                    <Text style={styles.summaryValue}>
-                      {formatRupiah(totalSales)}
-                    </Text>
-                  </View>
-                )}
-
                 {totalPurchases > 0 && totalSales > 0 && (
-                  <View style={styles.summaryRow}>
-                    <Text style={styles.summaryLabel}>
-                      Total Beli Komoditas
-                    </Text>
-                    <Text style={[styles.summaryValue, styles.textGreen]}>
-                      {formatRupiah(-totalPurchases)}
-                    </Text>
-                  </View>
+                  <>
+                    {totalSales > 0 && (
+                      <View style={styles.summaryRow}>
+                        <Text style={styles.summaryLabel}>Total Belanja</Text>
+                        <Text style={styles.summaryValue}>
+                          {formatRupiah(totalSales)}
+                        </Text>
+                      </View>
+                    )}
+
+                    {totalPurchases > 0 && (
+                      <View style={styles.summaryRow}>
+                        <Text style={styles.summaryLabel}>
+                          Total Beli Komoditas
+                        </Text>
+                        <Text style={[styles.summaryValue, styles.textGreen]}>
+                          {formatRupiah(-totalPurchases)}
+                        </Text>
+                      </View>
+                    )}
+                  </>
                 )}
 
                 <View style={styles.netAmountRow}>
