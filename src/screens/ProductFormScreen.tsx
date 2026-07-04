@@ -28,6 +28,8 @@ import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import { useInventory } from '../hooks/useInventory';
 import { RootStackParamList } from '../navigation/types';
 import BarcodeScannerModal from '../components/BarcodeScannerModal';
+import { savePhotoToStorage } from '../database/photoStorage';
+import { generateId } from '../database';
 
 type ProductFormScreenRouteProp = RouteProp<RootStackParamList, 'ProductForm'>;
 type ProductFormScreenNavigationProp = NativeStackNavigationProp<
@@ -64,7 +66,7 @@ function ProductFormScreen() {
   const [costPrice, setCostPrice] = useState('0');
   const [sellingPrice, setSellingPrice] = useState('0');
   const [stock, setStock] = useState('0');
-  const [minStock, setMinStock] = useState('5');
+  const [minStock, setMinStock] = useState('1');
   const [isCommodity, setIsCommodity] = useState(false);
   const [photo, setPhoto] = useState<string | null>(null);
 
@@ -109,7 +111,14 @@ function ProductFormScreen() {
     const finalCategory = category.trim() || 'Lainnya';
     const finalBarcode = barcode.trim() || null;
 
+    let finalPhoto = photo;
+
     try {
+      if (photo) {
+        const photoId = isEditMode && itemId ? itemId : generateId();
+        finalPhoto = await savePhotoToStorage(photo, photoId);
+      }
+
       if (isEditMode && itemId && itemType) {
         if (isCommodity) {
           await updateCommodity({
@@ -134,7 +143,7 @@ function ProductFormScreen() {
               stock: parsedStock,
               category: finalCategory,
               min_stock: parsedMinStock,
-              photo,
+              photo: finalPhoto,
             },
           });
         }
@@ -157,7 +166,7 @@ function ProductFormScreen() {
             stock: parsedStock,
             category: finalCategory,
             min_stock: parsedMinStock,
-            photo,
+            photo: finalPhoto,
           });
         }
       }
@@ -492,7 +501,6 @@ function ProductFormScreen() {
               </View>
             </View>
           )}
-
         </ScrollView>
 
         {/* Sticky Simpan Button di bagian bawah */}
@@ -524,7 +532,7 @@ function ProductFormScreen() {
       <BarcodeScannerModal
         visible={barcodeScannerVisible}
         onClose={() => setBarcodeScannerVisible(false)}
-        onBarcodeScanned={(code) => {
+        onBarcodeScanned={code => {
           setBarcode(code);
           setBarcodeScannerVisible(false);
         }}

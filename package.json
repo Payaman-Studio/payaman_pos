@@ -32,6 +32,7 @@
     "react-native-screens": "^4.25.2",
     "react-native-share": "^11.0.4",
     "react-native-vector-icons": "^10.3.0",
+    "react-native-zip-archive": "^8.0.1",
     "uuid": "^14.0.0",
     "yup": "^1.7.1"
   },

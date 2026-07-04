@@ -97,33 +97,20 @@ function TabNavigator() {
   );
 }
 
-const stackHeaderStyle = {
-  backgroundColor: '#FFFFFF',
-  elevation: 0,
-  shadowOpacity: 0,
-  borderBottomWidth: 0.5,
-  borderBottomColor: '#E5E7EB',
-};
-
 function AppNavigator() {
   return (
-    <Stack.Navigator
-      screenOptions={{
-        headerShown: false,
-      }}
-    >
-      <Stack.Screen name="MainTabs" component={TabNavigator} />
+    <Stack.Navigator>
+      <Stack.Screen
+        name="MainTabs"
+        component={TabNavigator}
+        options={{
+          headerShown: false,
+        }}
+      />
       <Stack.Screen
         name="ProductForm"
         component={ProductFormScreen}
         options={({ route }) => ({
-          headerShown: true,
-          headerStyle: stackHeaderStyle,
-          headerTitleStyle: {
-            fontSize: 16,
-            fontWeight: '800' as const,
-            color: '#000000',
-          },
           title: route.params?.itemId ? 'Edit Produk' : 'Tambah Produk',
           headerTintColor: '#000000',
         })}
@@ -132,13 +119,6 @@ function AppNavigator() {
         name="TransactionList"
         component={TransactionListScreen}
         options={{
-          headerShown: true,
-          headerStyle: stackHeaderStyle,
-          headerTitleStyle: {
-            fontSize: 16,
-            fontWeight: '800' as const,
-            color: '#000000',
-          },
           title: 'Riwayat Transaksi',
           headerTintColor: '#000000',
         }}

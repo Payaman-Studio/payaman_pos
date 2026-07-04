@@ -6,7 +6,7 @@ import Share from 'react-native-share';
 import { pick, types } from '@react-native-documents/picker';
 import {
   exportDatabaseToFile,
-  importDatabaseFromFile,
+  importDatabaseFromFileWithPhotos,
 } from '../database/dbDataTransfer';
 
 interface Props {
@@ -56,7 +56,7 @@ export default function DataManagementModal({ visible, onDismiss }: Props) {
       if (!file?.uri) return;
 
       setLoading(true);
-      const importResult = await importDatabaseFromFile(file.uri);
+      const importResult = await importDatabaseFromFileWithPhotos(file.uri);
       setSnackbar({ visible: true, text: importResult.message });
 
       if (importResult.success) {
