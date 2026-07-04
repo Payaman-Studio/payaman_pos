@@ -28,7 +28,13 @@ import { useInventory, InventoryItem } from '../hooks/useInventory';
 import { RootStackParamList } from '../navigation/types';
 import { groupByAlphabet } from '../utils/groupByAlphabet';
 import AlphabetIndex from '../components/inventory/AlphabetIndex';
-import { colors, spacing, borderRadius, fontSize, fontWeight } from '../constants/theme';
+import {
+  colors,
+  spacing,
+  borderRadius,
+  fontSize,
+  fontWeight,
+} from '../constants/theme';
 
 type SortBy = 'name' | 'stock' | 'price';
 
@@ -110,7 +116,8 @@ function InventoryScreen() {
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [sortMenuVisible, setSortMenuVisible] = useState(false);
 
-  const sectionListRef = useRef<SectionList<InventoryItem, { title: string }>>(null);
+  const sectionListRef =
+    useRef<SectionList<InventoryItem, { title: string }>>(null);
 
   const {
     inventoryItems,
@@ -138,33 +145,43 @@ function InventoryScreen() {
     return 'Rp ' + num.toLocaleString('id-ID');
   }, []);
 
-  const handleDelete = useCallback((item: InventoryItem) => {
-    Alert.alert('Hapus Item', `Yakin ingin menghapus "${item.name}"?`, [
-      { text: 'Batal', style: 'cancel' },
-      {
-        text: 'Hapus',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            if (item.type === 'PRODUCT') {
-              await deleteProduct(item.id);
-            } else {
-              await deleteCommodity(item.id);
+  const handleDelete = useCallback(
+    (item: InventoryItem) => {
+      Alert.alert('Hapus Item', `Yakin ingin menghapus "${item.name}"?`, [
+        { text: 'Batal', style: 'cancel' },
+        {
+          text: 'Hapus',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              if (item.type === 'PRODUCT') {
+                await deleteProduct(item.id);
+              } else {
+                await deleteCommodity(item.id);
+              }
+            } catch {
+              Alert.alert('Gagal', 'Gagal menghapus item');
             }
-          } catch {
-            Alert.alert('Gagal', 'Gagal menghapus item');
-          }
+          },
         },
-      },
-    ]);
-  }, [deleteProduct, deleteCommodity]);
+      ]);
+    },
+    [deleteProduct, deleteCommodity],
+  );
 
-  const handleLetterPress = useCallback((letter: string) => {
-    const idx = sections.findIndex(s => s.title === letter);
-    if (idx !== -1) {
-      sectionListRef.current?.scrollToLocation({ sectionIndex: idx, itemIndex: 0, animated: true });
-    }
-  }, [sections]);
+  const handleLetterPress = useCallback(
+    (letter: string) => {
+      const idx = sections.findIndex(s => s.title === letter);
+      if (idx !== -1) {
+        sectionListRef.current?.scrollToLocation({
+          sectionIndex: idx,
+          itemIndex: 0,
+          animated: true,
+        });
+      }
+    },
+    [sections],
+  );
 
   const renderItem = useCallback(
     ({ item }: { item: InventoryItem }) => {
@@ -290,7 +307,9 @@ function InventoryScreen() {
           activeOutlineColor={colors.black}
           style={styles.searchBar}
           contentStyle={styles.searchBarContent}
-          left={<TextInput.Icon icon="magnify" color={colors.gray400} size={20} />}
+          left={
+            <TextInput.Icon icon="magnify" color={colors.gray400} size={20} />
+          }
         />
 
         {/* Filter Row: Kategori + Low Stock Chip + Sort */}
@@ -374,17 +393,26 @@ function InventoryScreen() {
             }
           >
             <Menu.Item
-              onPress={() => { setSortBy('name'); setSortMenuVisible(false); }}
+              onPress={() => {
+                setSortBy('name');
+                setSortMenuVisible(false);
+              }}
               title="Nama (A-Z)"
               leadingIcon="sort-alphabetical-ascending"
             />
             <Menu.Item
-              onPress={() => { setSortBy('stock'); setSortMenuVisible(false); }}
+              onPress={() => {
+                setSortBy('stock');
+                setSortMenuVisible(false);
+              }}
               title="Stok Terendah"
               leadingIcon="sort-numeric-ascending"
             />
             <Menu.Item
-              onPress={() => { setSortBy('price'); setSortMenuVisible(false); }}
+              onPress={() => {
+                setSortBy('price');
+                setSortMenuVisible(false);
+              }}
               title="Harga Tertinggi"
               leadingIcon="sort-numeric-descending"
             />
@@ -398,7 +426,11 @@ function InventoryScreen() {
           </View>
         ) : inventoryItems.length === 0 ? (
           <View style={styles.centerContainer}>
-            <Icon name="package-variant-closed" size={48} color={colors.gray400} />
+            <Icon
+              name="package-variant-closed"
+              size={48}
+              color={colors.gray400}
+            />
             <Text style={styles.emptyText}>Tidak ada item ditemukan</Text>
           </View>
         ) : sortBy === 'name' ? (
@@ -455,8 +487,8 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    backgroundColor: colors.gray50,
-    paddingHorizontal: spacing.lg,
+    backgroundColor: colors.gray100,
+    padding: spacing.lg,
   },
   searchBar: {
     backgroundColor: colors.white,
