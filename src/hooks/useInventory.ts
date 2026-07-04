@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import * as dbProducts from '../database/dbProducts';
 import * as dbCommodities from '../database/dbCommodities';
@@ -48,6 +48,8 @@ export function useInventory(filters?: UseInventoryFilters) {
       const res = await dbProducts.getAll();
       return res.data;
     },
+    staleTime: 30_000,
+    gcTime: 5 * 60_000,
   });
 
   const commoditiesQuery = useQuery({
@@ -56,95 +58,103 @@ export function useInventory(filters?: UseInventoryFilters) {
       const res = await dbCommodities.getAll();
       return res.data;
     },
+    staleTime: 30_000,
+    gcTime: 5 * 60_000,
   });
 
   const isLoading = productsQuery.isLoading || commoditiesQuery.isLoading;
   const error = productsQuery.error || commoditiesQuery.error;
 
-  const products = productsQuery.data || [];
-  const commodities = commoditiesQuery.data || [];
+  const products = useMemo(() => productsQuery.data || [], [productsQuery.data]);
+  const commodities = useMemo(() => commoditiesQuery.data || [], [commoditiesQuery.data]);
 
-  // Konversi produk ke item inventori terpadu
-  const mappedProducts: InventoryItem[] = products.map((p: Product) => ({
-    id: p.id,
-    type: 'PRODUCT',
-    barcode: p.barcode,
-    name: p.name,
-    price: p.selling_price,
-    costPrice: p.cost_price,
-    stock: p.stock,
-    category: p.category,
-    unit: getUnit(p.name, 'PRODUCT'),
-    minStock: p.min_stock,
-    isLowStock: p.stock <= p.min_stock,
-    photo: p.photo,
-  }));
+  const mappedProducts = useMemo(
+    () =>
+      products.map((p: Product): InventoryItem => ({
+        id: p.id,
+        type: 'PRODUCT',
+        barcode: p.barcode,
+        name: p.name,
+        price: p.selling_price,
+        costPrice: p.cost_price,
+        stock: p.stock,
+        category: p.category,
+        unit: getUnit(p.name, 'PRODUCT'),
+        minStock: p.min_stock,
+        isLowStock: p.stock <= p.min_stock,
+        photo: p.photo,
+      })),
+    [products],
+  );
 
-  // Konversi komoditas ke item inventori terpadu
-  const mappedCommodities: InventoryItem[] = commodities.map((c: Commodity) => ({
-    id: c.id,
-    type: 'COMMODITY',
-    barcode: c.barcode,
-    name: c.name,
-    price: c.default_price,
-    stock: c.stock,
-    category: c.category,
-    unit: getUnit(c.name, 'COMMODITY'),
-    minStock: c.min_stock,
-    isLowStock: c.stock <= c.min_stock,
-    photo: null,
-  }));
+  const mappedCommodities = useMemo(
+    () =>
+      commodities.map((c: Commodity): InventoryItem => ({
+        id: c.id,
+        type: 'COMMODITY',
+        barcode: c.barcode,
+        name: c.name,
+        price: c.default_price,
+        stock: c.stock,
+        category: c.category,
+        unit: getUnit(c.name, 'COMMODITY'),
+        minStock: c.min_stock,
+        isLowStock: c.stock <= c.min_stock,
+        photo: null,
+      })),
+    [commodities],
+  );
 
-  // Gabungkan semua item
-  const allItems = [...mappedProducts, ...mappedCommodities];
+  const allItems = useMemo(
+    () => [...mappedProducts, ...mappedCommodities],
+    [mappedProducts, mappedCommodities],
+  );
 
-  // Hitung jumlah item dengan stok rendah
-  const lowStockCount = allItems.filter(item => item.isLowStock).length;
+  const lowStockCount = useMemo(
+    () => allItems.filter(item => item.isLowStock).length,
+    [allItems],
+  );
 
-  // Lakukan filter jika parameter filters dilewatkan
-  let filteredItems = allItems;
-  if (filters) {
-    filteredItems = allItems.filter(item => {
-      // Filter pencarian
+  const filteredItems = useMemo(() => {
+    if (!filters) return allItems;
+    return allItems.filter(item => {
       if (filters.search) {
         const searchLower = filters.search.toLowerCase();
         const matchName = item.name.toLowerCase().includes(searchLower);
         const matchBarcode = item.barcode ? item.barcode.toLowerCase().includes(searchLower) : false;
         if (!matchName && !matchBarcode) return false;
       }
-
-      // Filter kategori
       if (filters.category && filters.category !== 'Semua') {
         if (item.category !== filters.category) return false;
       }
-
-      // Filter stok rendah
       if (filters.lowStockOnly) {
         if (!item.isLowStock) return false;
       }
-
       return true;
     });
-  }
+  }, [allItems, filters]);
 
-  // Urutkan item: stok rendah terlebih dahulu, kemudian nama ASC
-  const sortedItems = filteredItems.sort((a, b) => {
-    if (a.isLowStock && !b.isLowStock) return -1;
-    if (!a.isLowStock && b.isLowStock) return 1;
-    return a.name.localeCompare(b.name);
-  });
-
-  // Ambil list semua kategori unik untuk filter pill
-  const uniqueCategories = Array.from(
-    new Set(
-      allItems
-        .map(item => item.category)
-        .filter((cat): cat is string => cat !== null && cat !== undefined)
-    )
+  const sortedItems = useMemo(
+    () =>
+      [...filteredItems].sort((a, b) => {
+        if (a.isLowStock && !b.isLowStock) return -1;
+        if (!a.isLowStock && b.isLowStock) return 1;
+        return a.name.localeCompare(b.name);
+      }),
+    [filteredItems],
   );
-  const categories = ['Semua', ...uniqueCategories];
 
-  // Ambil single item
+  const categories = useMemo(() => {
+    const uniqueCategories = Array.from(
+      new Set(
+        allItems
+          .map(item => item.category)
+          .filter((cat): cat is string => cat !== null && cat !== undefined),
+      ),
+    );
+    return ['Semua', ...uniqueCategories];
+  }, [allItems]);
+
   const getItem = useCallback(
     (id: string, type: 'PRODUCT' | 'COMMODITY'): InventoryItem | undefined => {
       return allItems.find(item => item.id === id && item.type === type);

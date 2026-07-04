@@ -1,8 +1,9 @@
+import { useCallback } from 'react';
 import { View, FlatList, StyleSheet, StatusBar } from 'react-native';
 
 import { Text } from 'react-native-paper';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { useRecentTransactions } from '../hooks/useTransactions';
+import { useRecentTransactions, TransactionWithDetails } from '../hooks/useTransactions';
 
 const formatRupiah = (num: number) => {
   return 'Rp ' + num.toLocaleString('id-ID');
@@ -22,6 +23,32 @@ const shortId = (id: string) => {
 function TransactionListScreen() {
   const { data: transactions } = useRecentTransactions(50);
 
+  const renderTransactionItem = useCallback(
+    ({ item }: { item: TransactionWithDetails }) => {
+      const isCitizen = item.type === 'CITIZEN' || item.type === 'MIXED';
+      const tagLabel = item.type === 'CITIZEN' ? 'WARGA' : item.type === 'MIXED' ? 'CAMPURAN' : 'TOKO';
+
+      return (
+        <View style={[styles.card, isCitizen ? styles.greenBorderLeft : null]}>
+          <View style={styles.cardTop}>
+            <View style={styles.tagRow}>
+              <Text style={styles.transactionId}>{shortId(item.id)}</Text>
+              <Text style={isCitizen ? styles.tagCitizen : styles.tagToko}>
+                {tagLabel}
+              </Text>
+            </View>
+            <Text style={styles.netAmount}>{formatRupiah(item.net_amount)}</Text>
+          </View>
+          <Text style={styles.meta}>
+            {formatDate(item.created_at)} &bull; {item.itemCount} Item
+            {item.itemNames ? ` (${item.itemNames})` : ''}
+          </Text>
+        </View>
+      );
+    },
+    [],
+  );
+
   return (
     <View style={styles.safeArea}>
       <StatusBar barStyle="dark-content" backgroundColor="#FAFAFA" />
@@ -36,28 +63,7 @@ function TransactionListScreen() {
           data={transactions}
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.listContent}
-          renderItem={({ item }) => {
-            const isCitizen = item.type === 'CITIZEN' || item.type === 'MIXED';
-            const tagLabel = item.type === 'CITIZEN' ? 'WARGA' : item.type === 'MIXED' ? 'CAMPURAN' : 'TOKO';
-
-            return (
-              <View style={[styles.card, isCitizen ? styles.greenBorderLeft : null]}>
-                <View style={styles.cardTop}>
-                  <View style={styles.tagRow}>
-                    <Text style={styles.transactionId}>{shortId(item.id)}</Text>
-                    <Text style={isCitizen ? styles.tagCitizen : styles.tagToko}>
-                      {tagLabel}
-                    </Text>
-                  </View>
-                  <Text style={styles.netAmount}>{formatRupiah(item.net_amount)}</Text>
-                </View>
-                <Text style={styles.meta}>
-                  {formatDate(item.created_at)} &bull; {item.itemCount} Item
-                  {item.itemNames ? ` (${item.itemNames})` : ''}
-                </Text>
-              </View>
-            );
-          }}
+          renderItem={renderTransactionItem}
         />
       )}
     </View>

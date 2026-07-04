@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { getDatabase } from '../database';
 import * as dbProducts from '../database/dbProducts';
 import * as dbCommodities from '../database/dbCommodities';
 import * as dbTransactions from '../database/dbTransactions';
@@ -98,49 +99,52 @@ export function useCashier() {
   // Checkout mutasi transaksi
   const checkoutMutation = useMutation({
     mutationFn: async () => {
-      // 1. Simpan Transaksi Utama
-      const tx = await dbTransactions.store({
-        total_sales: totalSales,
-        total_purchases: totalPurchases,
-        net_amount: finalAmount,
-        total_paid: cashNum,
-      });
+      const db = getDatabase();
 
-      // 2. Simpan Detail Transaksi dan Update Stok
-      for (const item of cartItems) {
-        // Simpan detail ke DB
-        await dbTransactionDetails.store({
-          transaction_id: tx.id,
-          item_type: item.type,
-          item_id: item.itemId,
-          quantity: item.quantity,
-          price_at_sale: item.price,
-          flow_direction: item.flowDirection,
+      db.execute('BEGIN TRANSACTION');
+      try {
+        // 1. Simpan Transaksi Utama
+        const tx = await dbTransactions.store({
+          total_sales: totalSales,
+          total_purchases: totalPurchases,
+          net_amount: finalAmount,
+          total_paid: cashNum,
         });
 
-        // Update Stok
-        if (item.type === 'PRODUCT') {
-          const product = await dbProducts.getById(item.itemId);
-          if (product) {
-            // Produk berkurang stoknya jika dijual (flowDirection === 'OUT')
-            // Atau bertambah stoknya jika kita membeli/kulakan (flowDirection === 'IN')
-            const qtyChange = item.flowDirection === 'OUT' ? -item.quantity : item.quantity;
-            const newStock = Math.max(0, product.stock + qtyChange);
-            await dbProducts.update(item.itemId, { stock: newStock });
-          }
-        } else {
-          const commodity = await dbCommodities.getById(item.itemId);
-          if (commodity) {
-            // Komoditas bertambah stoknya jika kita membelinya dari warga (flowDirection === 'IN')
-            // Atau berkurang stoknya jika kita menjualnya (flowDirection === 'OUT')
-            const qtyChange = item.flowDirection === 'IN' ? item.quantity : -item.quantity;
-            const newStock = Math.max(0, commodity.stock + qtyChange);
-            await dbCommodities.update(item.itemId, { stock: newStock });
+        // 2. Simpan Detail Transaksi dan Update Stok
+        for (const item of cartItems) {
+          await dbTransactionDetails.store({
+            transaction_id: tx.id,
+            item_type: item.type,
+            item_id: item.itemId,
+            quantity: item.quantity,
+            price_at_sale: item.price,
+            flow_direction: item.flowDirection,
+          });
+
+          if (item.type === 'PRODUCT') {
+            const product = await dbProducts.getById(item.itemId);
+            if (product) {
+              const qtyChange = item.flowDirection === 'OUT' ? -item.quantity : item.quantity;
+              const newStock = Math.max(0, product.stock + qtyChange);
+              await dbProducts.update(item.itemId, { stock: newStock });
+            }
+          } else {
+            const commodity = await dbCommodities.getById(item.itemId);
+            if (commodity) {
+              const qtyChange = item.flowDirection === 'IN' ? item.quantity : -item.quantity;
+              const newStock = Math.max(0, commodity.stock + qtyChange);
+              await dbCommodities.update(item.itemId, { stock: newStock });
+            }
           }
         }
-      }
 
-      return tx;
+        db.execute('COMMIT');
+        return tx;
+      } catch (error) {
+        db.execute('ROLLBACK');
+        throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['products'] });

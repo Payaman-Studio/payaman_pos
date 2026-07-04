@@ -1,4 +1,4 @@
-import { useState, useCallback, useLayoutEffect } from 'react';
+import { useState, useCallback, useLayoutEffect, useEffect, useRef, useMemo } from 'react';
 import {
   View,
   Image,
@@ -21,14 +21,13 @@ import {
   Dialog,
   IconButton,
   Snackbar,
-  Divider,
 } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 import { useCashier, CartItem } from '../hooks/useCashier';
-import { useInventory, InventoryItem } from '../hooks/useInventory';
+import { useInventory } from '../hooks/useInventory';
 import BarcodeScannerModal from '../components/BarcodeScannerModal';
 
 function CashierScreen() {
@@ -58,6 +57,22 @@ function CashierScreen() {
   const [barcodeScannerVisible, setBarcodeScannerVisible] = useState(false);
 
   const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
+  const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    if (searchTimerRef.current) {
+      clearTimeout(searchTimerRef.current);
+    }
+    searchTimerRef.current = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 300);
+    return () => {
+      if (searchTimerRef.current) {
+        clearTimeout(searchTimerRef.current);
+      }
+    };
+  }, [searchQuery]);
 
   // Form States: Tambah Manual
   const [manualName, setManualName] = useState('');
@@ -130,7 +145,7 @@ function CashierScreen() {
         showFeedback(`Barcode ${barcode} tidak ditemukan`);
       }
     },
-    [inventoryItems, addToCart],
+    [inventoryItems, addToCart, showFeedback],
   );
 
   const manualPriceValue = parseInt(manualPriceRaw, 10) || 0;
@@ -220,117 +235,118 @@ function CashierScreen() {
     }
   };
 
-  const searchResults = searchQuery.trim()
-    ? inventoryItems
-        .filter(
-          item =>
-            item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            (item.barcode &&
-              item.barcode.toLowerCase().includes(searchQuery.toLowerCase())),
-        )
-        .slice(0, 15)
-    : [];
+  const searchResults = useMemo(
+    () =>
+      debouncedSearchQuery.trim()
+        ? inventoryItems
+            .filter(
+              item =>
+                item.name.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
+                (item.barcode &&
+                  item.barcode.toLowerCase().includes(debouncedSearchQuery.toLowerCase())),
+            )
+            .slice(0, 15)
+        : [],
+    [inventoryItems, debouncedSearchQuery],
+  );
 
-  // Render list item keranjang kasir
-  const renderCartItem = ({ item }: { item: CartItem }) => {
-    const isOut = item.flowDirection === 'OUT';
-    const totalItemPrice = item.price * item.quantity;
+  const renderCartItem = useCallback(
+    ({ item }: { item: CartItem }) => {
+      const isOut = item.flowDirection === 'OUT';
+      const totalItemPrice = item.price * item.quantity;
 
-    return (
-      <Card
-        style={[
-          styles.cartCard,
-          isOut ? styles.cartCardProduct : styles.cartCardCommodity,
-        ]}
-        mode="outlined"
-      >
-        <View style={styles.cartCardContent}>
-          {/* Foto */}
-          {item.photo ? (
-            <Image source={{ uri: item.photo }} style={styles.cartPhoto} />
-          ) : (
-            <View style={styles.cartPhotoPlaceholder}>
-              <Icon
-                name={isOut ? 'package-variant' : 'leaf'}
-                size={20}
-                color="#9CA3AF"
-              />
-            </View>
-          )}
-
-          {/* Info Barang */}
-          <View style={styles.cartDetailsContainer}>
-            <View style={styles.cartNameRow}>
-              {!isOut && (
-                <View style={styles.beliTag}>
-                  <Text style={styles.beliTagText}>BELI</Text>
-                </View>
-              )}
-              <Text
-                variant="titleMedium"
-                style={styles.cartItemName}
-                numberOfLines={1}
-              >
-                {item.name}
-              </Text>
-            </View>
-            <Text variant="bodyMedium" style={styles.cartQtyText}>
-              {item.quantity} {item.unit} x {item.price.toLocaleString('id-ID')}
-            </Text>
-          </View>
-
-          {/* Kolom Aksi Kanan */}
-          <View style={styles.cartActionContainer}>
-            <Text variant="titleMedium" style={styles.cartItemTotal}>
-              {formatRupiah(isOut ? totalItemPrice : -totalItemPrice)}
-            </Text>
-
-            {isOut ? (
-              // Tombol tambah/kurang untuk produk
-              <View style={styles.qtyControls}>
-                <TouchableOpacity
-                  activeOpacity={0.7}
-                  onPress={() => updateQuantity(item.id, item.quantity - 1)}
-                  style={styles.qtyBtn}
-                >
-                  <Icon name="minus" size={16} color="#4B5563" />
-                </TouchableOpacity>
-                <TouchableOpacity
-                  activeOpacity={0.7}
-                  onPress={() => updateQuantity(item.id, item.quantity + 1)}
-                  style={styles.qtyBtn}
-                >
-                  <Icon name="plus" size={16} color="#4B5563" />
-                </TouchableOpacity>
-              </View>
+      return (
+        <Card
+          style={[
+            styles.cartCard,
+            isOut ? styles.cartCardProduct : styles.cartCardCommodity,
+          ]}
+          mode="outlined"
+        >
+          <View style={styles.cartCardContent}>
+            {item.photo ? (
+              <Image source={{ uri: item.photo }} style={styles.cartPhoto} />
             ) : (
-              // Tombol edit/hapus untuk komoditas (karena kuantitas desimal)
-              <View style={styles.qtyControls}>
-                <TouchableOpacity
-                  activeOpacity={0.7}
-                  onPress={() => {
-                    setSelectedCartItem(item);
-                    setEditQtyInput(item.quantity.toString());
-                    setEditQtyModalVisible(true);
-                  }}
-                  style={styles.qtyEditBtn}
-                >
-                  <Icon name="pencil-outline" size={16} color="#4B5563" />
-                </TouchableOpacity>
-                <TouchableOpacity
-                  activeOpacity={0.7}
-                  onPress={() => removeFromCart(item.id)}
-                  style={styles.qtyDeleteBtn}
-                >
-                  <Icon name="delete-outline" size={16} color="#DC2626" />
-                </TouchableOpacity>
+              <View style={styles.cartPhotoPlaceholder}>
+                <Icon
+                  name={isOut ? 'package-variant' : 'leaf'}
+                  size={20}
+                  color="#9CA3AF"
+                />
               </View>
             )}
+
+            <View style={styles.cartDetailsContainer}>
+              <View style={styles.cartNameRow}>
+                {!isOut && (
+                  <View style={styles.beliTag}>
+                    <Text style={styles.beliTagText}>BELI</Text>
+                  </View>
+                )}
+                <Text
+                  variant="titleMedium"
+                  style={styles.cartItemName}
+                  numberOfLines={1}
+                >
+                  {item.name}
+                </Text>
+              </View>
+              <Text variant="bodyMedium" style={styles.cartQtyText}>
+                {item.quantity} {item.unit} x {item.price.toLocaleString('id-ID')}
+              </Text>
+            </View>
+
+            <View style={styles.cartActionContainer}>
+              <Text variant="titleMedium" style={styles.cartItemTotal}>
+                {formatRupiah(isOut ? totalItemPrice : -totalItemPrice)}
+              </Text>
+
+              {isOut ? (
+                <View style={styles.qtyControls}>
+                  <TouchableOpacity
+                    activeOpacity={0.7}
+                    onPress={() => updateQuantity(item.id, item.quantity - 1)}
+                    style={styles.qtyBtn}
+                  >
+                    <Icon name="minus" size={16} color="#4B5563" />
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    activeOpacity={0.7}
+                    onPress={() => updateQuantity(item.id, item.quantity + 1)}
+                    style={styles.qtyBtn}
+                  >
+                    <Icon name="plus" size={16} color="#4B5563" />
+                  </TouchableOpacity>
+                </View>
+              ) : (
+                <View style={styles.qtyControls}>
+                  <TouchableOpacity
+                    activeOpacity={0.7}
+                    onPress={() => {
+                      setSelectedCartItem(item);
+                      setEditQtyInput(item.quantity.toString());
+                      setEditQtyModalVisible(true);
+                    }}
+                    style={styles.qtyEditBtn}
+                  >
+                    <Icon name="pencil-outline" size={16} color="#4B5563" />
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    activeOpacity={0.7}
+                    onPress={() => removeFromCart(item.id)}
+                    style={styles.qtyDeleteBtn}
+                  >
+                    <Icon name="delete-outline" size={16} color="#DC2626" />
+                  </TouchableOpacity>
+                </View>
+              )}
+            </View>
           </View>
-        </View>
-      </Card>
-    );
-  };
+        </Card>
+      );
+    },
+    [updateQuantity, removeFromCart],
+  );
 
   const isWarungPay = finalAmount < 0;
 

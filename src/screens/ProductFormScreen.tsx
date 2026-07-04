@@ -95,7 +95,7 @@ function ProductFormScreen() {
         }
       }
     }
-  }, [isEditMode, itemId, itemType]);
+  }, [isEditMode, itemId, itemType, getItem]);
 
   const handleSave = async () => {
     if (!name.trim()) return;

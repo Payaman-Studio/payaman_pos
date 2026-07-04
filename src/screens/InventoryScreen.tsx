@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import {
   View,
   Image,
@@ -117,12 +117,11 @@ function InventoryScreen() {
     lowStockOnly,
   });
 
-  // Format ke mata uang Rupiah
-  const formatRupiah = (num: number) => {
+  const formatRupiah = useCallback((num: number) => {
     return 'Rp ' + num.toLocaleString('id-ID');
-  };
+  }, []);
 
-  const handleDelete = (item: InventoryItem) => {
+  const handleDelete = useCallback((item: InventoryItem) => {
     Alert.alert('Hapus Item', `Yakin ingin menghapus "${item.name}"?`, [
       { text: 'Batal', style: 'cancel' },
       {
@@ -141,87 +140,89 @@ function InventoryScreen() {
         },
       },
     ]);
-  };
+  }, [deleteProduct, deleteCommodity]);
 
-  // Render Item untuk FlatList
-  const renderItem = ({ item }: { item: InventoryItem }) => {
-    return (
-      <Card
-        style={styles.card}
-        mode="outlined"
-        onPress={() =>
+  const renderItem = useCallback(
+    ({ item }: { item: InventoryItem }) => {
+      return (
+        <Card
+          style={styles.card}
+          mode="outlined"
+          onPress={() =>
           navigation.navigate('ProductForm', {
             itemId: item.id,
             itemType: item.type,
           })
         }
-      >
-        <View style={styles.cardContent}>
-          <ProductThumbnail
-            name={item.name}
-            category={item.category}
-            type={item.type}
-            photo={item.photo}
-          />
+        >
+          <View style={styles.cardContent}>
+            <ProductThumbnail
+              name={item.name}
+              category={item.category}
+              type={item.type}
+              photo={item.photo}
+            />
 
-          <View style={styles.detailsContainer}>
-            <Text
-              variant="titleMedium"
-              style={styles.itemName}
-              numberOfLines={1}
-            >
-              {item.name}
-            </Text>
-            {item.barcode && (
-              <Text variant="bodySmall" style={styles.skuText}>
-                SKU: {item.barcode}
-              </Text>
-            )}
-
-            <View style={styles.stockContainer}>
-              {item.isLowStock && (
-                <Icon
-                  name="alert-circle-outline"
-                  size={14}
-                  color="#DC2626"
-                  style={styles.alertIcon}
-                />
-              )}
+            <View style={styles.detailsContainer}>
               <Text
-                variant="bodyMedium"
-                style={[
-                  styles.stockText,
-                  item.isLowStock
-                    ? styles.lowStockText
-                    : styles.normalStockText,
-                ]}
+                variant="titleMedium"
+                style={styles.itemName}
+                numberOfLines={1}
               >
-                {item.stock} {item.unit}
+                {item.name}
+              </Text>
+              {item.barcode && (
+                <Text variant="bodySmall" style={styles.skuText}>
+                  SKU: {item.barcode}
+                </Text>
+              )}
+
+              <View style={styles.stockContainer}>
+                {item.isLowStock && (
+                  <Icon
+                    name="alert-circle-outline"
+                    size={14}
+                    color="#DC2626"
+                    style={styles.alertIcon}
+                  />
+                )}
+                <Text
+                  variant="bodyMedium"
+                  style={[
+                    styles.stockText,
+                    item.isLowStock
+                      ? styles.lowStockText
+                      : styles.normalStockText,
+                  ]}
+                >
+                  {item.stock} {item.unit}
+                </Text>
+              </View>
+            </View>
+
+            <View style={styles.priceContainer}>
+              <Text variant="titleMedium" style={styles.priceText}>
+                {formatRupiah(item.price)}
+              </Text>
+              <Text variant="bodySmall" style={styles.unitText}>
+                {item.type === 'PRODUCT' ? 'per unit' : `per ${item.unit}`}
               </Text>
             </View>
-          </View>
 
-          <View style={styles.priceContainer}>
-            <Text variant="titleMedium" style={styles.priceText}>
-              {formatRupiah(item.price)}
-            </Text>
-            <Text variant="bodySmall" style={styles.unitText}>
-              {item.type === 'PRODUCT' ? 'per unit' : `per ${item.unit}`}
-            </Text>
+            <TouchableOpacity
+              activeOpacity={0.6}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              onPress={() => handleDelete(item)}
+              style={styles.deleteButton}
+            >
+              <Icon name="delete-outline" size={20} color="#9CA3AF" />
+            </TouchableOpacity>
           </View>
-
-          <TouchableOpacity
-            activeOpacity={0.6}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            onPress={() => handleDelete(item)}
-            style={styles.deleteButton}
-          >
-            <Icon name="delete-outline" size={20} color="#9CA3AF" />
-          </TouchableOpacity>
-        </View>
-      </Card>
-    );
-  };
+        </Card>
+      );
+    },
+    [navigation, handleDelete, formatRupiah],
+  );
 
   return (
     <View style={styles.safeArea}>

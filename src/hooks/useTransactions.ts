@@ -56,6 +56,8 @@ export function useRecentTransactions(limit = 5) {
 
       return enriched;
     },
+    staleTime: 30_000,
+    gcTime: 5 * 60_000,
   });
 
   return query;
@@ -68,10 +70,9 @@ export function useTransactionSummary() {
       const now = new Date();
       const startOfDay = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} 00:00:00`;
 
-      const { data: allTransactions } = await dbTransactions.getAll();
-      const todayTransactions = allTransactions.filter(
-        (t) => t.created_at >= startOfDay,
-      );
+      const { data: todayTransactions } = await dbTransactions.getAll({
+        dateFrom: startOfDay,
+      });
 
       const totalTransactions = todayTransactions.length;
       const totalSales = todayTransactions.reduce((s, t) => s + t.total_sales, 0);
@@ -85,6 +86,8 @@ export function useTransactionSummary() {
         totalNet,
       };
     },
+    staleTime: 30_000,
+    gcTime: 5 * 60_000,
   });
 
   return query;

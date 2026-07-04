@@ -31,15 +31,12 @@ function BarcodeScannerModal({
 
   useEffect(() => {
     if (visible) {
-      requestCameraPermission();
-    }
-  }, [visible]);
-
-  useEffect(() => {
-    if (visible) {
       scannedRef.current = false;
+      if (hasPermission === null) {
+        requestCameraPermission();
+      }
     }
-  }, [visible]);
+  }, [visible, hasPermission]);
 
   const requestCameraPermission = async () => {
     if (Platform.OS === 'android') {
@@ -102,30 +99,32 @@ function BarcodeScannerModal({
   return (
     <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
       <StatusBar barStyle="light-content" />
-      <Camera
-        style={styles.camera}
-        cameraType={CameraType.Back}
-        scanBarcode
-        showFrame
-        laserColor="#DC2626"
-        frameColor="#FFFFFF"
-        scanThrottleDelay={500}
-        onReadCode={handleReadCode}
-        allowedBarcodeTypes={
-          [
-            'ean-13',
-            'ean-8',
-            'code-128',
-            'code-39',
-            'upc-a',
-            'upc-e',
-            'qr',
-            ...(Platform.OS === 'ios'
-              ? (['code-93', 'pdf-417', 'itf-14'] as BarcodeFormat[])
-              : []),
-          ] as BarcodeFormat[]
-        }
-      />
+      {visible && hasPermission && (
+        <Camera
+          style={styles.camera}
+          cameraType={CameraType.Back}
+          scanBarcode
+          showFrame
+          laserColor="#DC2626"
+          frameColor="#FFFFFF"
+          scanThrottleDelay={500}
+          onReadCode={handleReadCode}
+          allowedBarcodeTypes={
+            [
+              'ean-13',
+              'ean-8',
+              'code-128',
+              'code-39',
+              'upc-a',
+              'upc-e',
+              'qr',
+              ...(Platform.OS === 'ios'
+                ? (['code-93', 'pdf-417', 'itf-14'] as BarcodeFormat[])
+                : []),
+            ] as BarcodeFormat[]
+          }
+        />
+      )}
 
       <Text style={styles.scanHint}>Arahkan kamera ke barcode produk</Text>
 
