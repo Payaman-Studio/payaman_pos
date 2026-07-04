@@ -15,6 +15,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
+  BackHandler,
 } from 'react-native';
 import {
   Text,
@@ -136,6 +137,22 @@ function CashierScreen() {
   useLayoutEffect(() => {
     navigation.setOptions({ headerRight });
   }, [navigation, headerRight]);
+
+  // Double back to exit (Android hardware back)
+  const backPressCountRef = useRef(0);
+  useEffect(() => {
+    const onBackPress = () => {
+      if (backPressCountRef.current === 0) {
+        backPressCountRef.current = 1;
+        showFeedback('Tekan sekali lagi untuk keluar');
+        setTimeout(() => { backPressCountRef.current = 0; }, 2000);
+        return true;
+      }
+      return false;
+    };
+    const subscription = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+    return () => subscription.remove();
+  }, [showFeedback]);
 
   const handleBarcodeScanned = useCallback(
     (barcode: string) => {
