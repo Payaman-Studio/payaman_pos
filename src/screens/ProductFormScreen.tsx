@@ -11,14 +11,7 @@ import {
   Alert,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import {
-  Text,
-  TextInput,
-  Switch,
-  Button,
-  Menu,
-  Snackbar,
-} from 'react-native-paper';
+import { Text, TextInput, Button, Menu, Snackbar } from 'react-native-paper';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -30,7 +23,13 @@ import { RootStackParamList } from '../navigation/types';
 import BarcodeScannerModal from '../components/BarcodeScannerModal';
 import { savePhotoToStorage } from '../database/photoStorage';
 import { generateId } from '../database';
-import { colors, spacing, borderRadius, fontSize, fontWeight } from '../constants/theme';
+import {
+  colors,
+  spacing,
+  borderRadius,
+  fontSize,
+  fontWeight,
+} from '../constants/theme';
 
 type ProductFormScreenRouteProp = RouteProp<RootStackParamList, 'ProductForm'>;
 type ProductFormScreenNavigationProp = NativeStackNavigationProp<
@@ -47,7 +46,6 @@ function ProductFormScreen() {
   const itemType = route.params?.itemType;
   const isEditMode = !!itemId;
 
-  // Custom hook untuk operasi database
   const {
     getItem,
     addProduct,
@@ -63,7 +61,7 @@ function ProductFormScreen() {
   // State Form
   const [name, setName] = useState('');
   const [barcode, setBarcode] = useState('');
-  const [category, setCategory] = useState('');
+  const [category, setCategory] = useState('Lainnya');
   const [costPrice, setCostPrice] = useState('0');
   const [sellingPrice, setSellingPrice] = useState('0');
   const [stock, setStock] = useState('0');
@@ -77,8 +75,9 @@ function ProductFormScreen() {
   const [barcodeScannerVisible, setBarcodeScannerVisible] = useState(false);
   const [snackbarVisible, setSnackbarVisible] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [isNewCategory, setIsNewCategory] = useState(false);
+  const [photoMenuVisible, setPhotoMenuVisible] = useState(false);
 
-  // Load data lama jika dalam mode Edit — hanya sekali saat mount
   useEffect(() => {
     if (isEditMode && itemId && itemType) {
       const item = getItem(itemId, itemType);
@@ -231,7 +230,6 @@ function ProductFormScreen() {
     setPhoto(null);
   };
 
-  // Bersihkan opsi kategori agar tidak duplikat dengan "Semua"
   const availableCategories = categories.filter(cat => cat !== 'Semua');
 
   return (
@@ -246,97 +244,116 @@ function ProductFormScreen() {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scrollContent}
         >
-          {/* FOTO PRODUK */}
-          <View style={styles.photoSection}>
+          {/* 1. Segmented Control — Tipe Produk */}
+          <View style={styles.typeSegmentedControl}>
             <TouchableOpacity
               activeOpacity={0.8}
-              onPress={handlePickPhoto}
-              style={styles.photoPicker}
+              onPress={() => setIsCommodity(false)}
+              style={[
+                styles.typeSegment,
+                !isCommodity && styles.typeSegmentActive,
+              ]}
             >
-              {photo ? (
-                <Image source={{ uri: photo }} style={styles.photoPreview} />
-              ) : (
-                <View style={styles.photoPlaceholder}>
-                  <Icon name="camera-plus" size={40} color={colors.gray400} />
-                  <Text style={styles.photoPlaceholderText}>Foto Produk</Text>
-                </View>
-              )}
+              <Text
+                style={[
+                  styles.typeSegmentText,
+                  !isCommodity && styles.typeSegmentTextActive,
+                ]}
+              >
+                Produk Toko
+              </Text>
             </TouchableOpacity>
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={() => setIsCommodity(true)}
+              style={[
+                styles.typeSegment,
+                isCommodity && styles.typeSegmentActive,
+              ]}
+            >
+              <Text
+                style={[
+                  styles.typeSegmentText,
+                  isCommodity && styles.typeSegmentTextActive,
+                ]}
+              >
+                Komoditas Warga
+              </Text>
+            </TouchableOpacity>
+          </View>
 
-            <View style={styles.photoActions}>
-              <Button
-                mode="outlined"
-                onPress={handleTakePhoto}
-                icon="camera"
-                style={styles.photoActionBtn}
-                contentStyle={styles.photoActionContent}
-              >
-                Kamera
-              </Button>
-              <Button
-                mode="outlined"
-                onPress={handlePickPhoto}
-                icon="image"
-                style={styles.photoActionBtn}
-                contentStyle={styles.photoActionContent}
-              >
-                Galeri
-              </Button>
-              {photo && (
-                <Button
-                  mode="text"
-                  onPress={handleRemovePhoto}
-                  icon="close"
-                  textColor={colors.red500}
-                  style={styles.photoActionBtn}
-                  contentStyle={styles.photoActionContent}
+          {/* 2. Foto Thumbnail + Nama Produk */}
+          <View style={styles.photoNameRow}>
+            <Menu
+              visible={photoMenuVisible}
+              onDismiss={() => setPhotoMenuVisible(false)}
+              anchor={
+                <TouchableOpacity
+                  activeOpacity={0.8}
+                  onPress={() => setPhotoMenuVisible(true)}
+                  style={styles.photoThumbnailContainer}
                 >
-                  Hapus
-                </Button>
-              )}
-            </View>
-          </View>
-
-          {/* Switch Produk Komoditas Warga */}
-          <View style={styles.commoditySwitchContainer}>
-            <View style={styles.commoditySwitchLeft}>
-              <Icon
-                name="leaf"
-                size={20}
-                color={colors.green600}
-                style={styles.commodityIcon}
+                  {photo ? (
+                    <Image
+                      source={{ uri: photo }}
+                      style={styles.photoThumbnail}
+                    />
+                  ) : (
+                    <View style={styles.photoThumbnailPlaceholder}>
+                      <Icon
+                        name="camera-plus"
+                        size={24}
+                        color={colors.gray400}
+                      />
+                    </View>
+                  )}
+                </TouchableOpacity>
+              }
+            >
+              <Menu.Item
+                onPress={() => {
+                  handleTakePhoto();
+                  setPhotoMenuVisible(false);
+                }}
+                leadingIcon="camera"
+                title="Ambil Foto"
               />
-              <Text style={styles.commodityText}>Produk Komoditas Warga</Text>
+              <Menu.Item
+                onPress={() => {
+                  handlePickPhoto();
+                  setPhotoMenuVisible(false);
+                }}
+                leadingIcon="image"
+                title="Pilih dari Galeri"
+              />
+              {photo && (
+                <Menu.Item
+                  onPress={() => {
+                    handleRemovePhoto();
+                    setPhotoMenuVisible(false);
+                  }}
+                  leadingIcon="delete"
+                  title="Hapus Foto"
+                />
+              )}
+            </Menu>
+
+            <View style={styles.nameInputContainer}>
+              <Text style={styles.inputLabel}>Nama Produk</Text>
+              <TextInput
+                placeholder="Contoh: Beras 5kg"
+                value={name}
+                onChangeText={setName}
+                mode="outlined"
+                outlineColor={colors.gray200}
+                activeOutlineColor={colors.black}
+                style={styles.textInput}
+                contentStyle={styles.textInputContent}
+              />
             </View>
-            <Switch
-              value={isCommodity}
-              onValueChange={setIsCommodity}
-              color={colors.green600}
-            />
           </View>
 
-          <View style={styles.divider} />
-
-          {/* BAGIAN 1: INFORMASI DASAR */}
-          <View style={styles.sectionHeader}>
-            <Icon name="clipboard-text-outline" size={20} color={colors.gray700} />
-            <Text style={styles.sectionTitle}>INFORMASI DASAR</Text>
-          </View>
-
-          <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>Nama Produk</Text>
-            <TextInput
-              placeholder="Contoh: Beras Pandan Wangi 5kg"
-              value={name}
-              onChangeText={setName}
-              mode="outlined"
-              outlineColor={colors.gray200}
-              activeOutlineColor={colors.black}
-              style={styles.textInput}
-              contentStyle={styles.textInputContent}
-            />
-          </View>
-
+          {/* 6. SKU / Barcode */}
           {!isCommodity && (
             <View style={styles.inputGroup}>
               <Text style={styles.inputLabel}>SKU / Barcode</Text>
@@ -361,81 +378,13 @@ function ProductFormScreen() {
             </View>
           )}
 
-          {!isCommodity && (
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Kategori</Text>
-              <Menu
-                visible={categoryMenuVisible}
-                onDismiss={() => setCategoryMenuVisible(false)}
-                anchor={
-                  <TouchableOpacity
-                    activeOpacity={0.8}
-                    onPress={() => setCategoryMenuVisible(true)}
-                    style={styles.dropdownTrigger}
-                  >
-                    <Text
-                      style={
-                        category
-                          ? styles.dropdownText
-                          : styles.dropdownPlaceholder
-                      }
-                    >
-                      {category || 'Pilih Kategori'}
-                    </Text>
-                    <Icon name="chevron-down" size={20} color={colors.gray500} />
-                  </TouchableOpacity>
-                }
-              >
-                {availableCategories.map(cat => (
-                  <Menu.Item
-                    key={cat}
-                    onPress={() => {
-                      setCategory(cat);
-                      setCategoryMenuVisible(false);
-                    }}
-                    title={cat}
-                  />
-                ))}
-                <Menu.Item
-                  onPress={() => {
-                    setCategoryMenuVisible(false);
-                    // Buka input teks baru secara langsung dengan state
-                    setCategory('');
-                  }}
-                  title="+ Buat Kategori Baru"
-                />
-              </Menu>
-              {/* Input teks kategori jika kategori tidak ada di list atau ingin buat baru */}
-              {!availableCategories.includes(category) && (
-                <TextInput
-                  placeholder="Tulis Kategori Baru..."
-                  value={category}
-                  onChangeText={setCategory}
-                  mode="outlined"
-                  outlineColor={colors.gray200}
-                  activeOutlineColor={colors.black}
-                  style={[styles.textInput, styles.marginTop8]}
-                  contentStyle={styles.textInputContent}
-                />
-              )}
-            </View>
-          )}
-
-          <View style={styles.divider} />
-
-          {/* BAGIAN 2: HARGA & INVENTORI */}
-          <View style={styles.sectionHeader}>
-            <Icon name="cash-multiple" size={20} color={colors.green500} />
-            <Text style={styles.sectionTitle}>HARGA & INVENTORI</Text>
-          </View>
-
-          {/* Sembunyikan harga beli jika tipe komoditas karena DB komoditas hanya ada default_price */}
-          {!isCommodity && (
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Harga Beli</Text>
+          {/* 3. Harga Jual + Harga Beli */}
+          <View style={styles.rowInputs}>
+            <View style={[styles.inputGroup, styles.halfInput]}>
+              <Text style={styles.inputLabel}>Harga Jual</Text>
               <TextInput
-                value={costPrice}
-                onChangeText={setCostPrice}
+                value={sellingPrice}
+                onChangeText={setSellingPrice}
                 keyboardType="numeric"
                 mode="outlined"
                 outlineColor={colors.gray200}
@@ -448,26 +397,29 @@ function ProductFormScreen() {
                 }
               />
             </View>
-          )}
 
-          <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>Harga Jual</Text>
-            <TextInput
-              value={sellingPrice}
-              onChangeText={setSellingPrice}
-              keyboardType="numeric"
-              mode="outlined"
-              outlineColor={colors.gray200}
-              activeOutlineColor={colors.black}
-              selectTextOnFocus
-              style={styles.textInput}
-              contentStyle={styles.textInputContent}
-              left={
-                <TextInput.Affix text="Rp " textStyle={styles.affixStyle} />
-              }
-            />
+            {!isCommodity && (
+              <View style={[styles.inputGroup, styles.halfInput]}>
+                <Text style={styles.inputLabel}>Harga Beli</Text>
+                <TextInput
+                  value={costPrice}
+                  onChangeText={setCostPrice}
+                  keyboardType="numeric"
+                  mode="outlined"
+                  outlineColor={colors.gray200}
+                  activeOutlineColor={colors.black}
+                  selectTextOnFocus
+                  style={styles.textInput}
+                  contentStyle={styles.textInputContent}
+                  left={
+                    <TextInput.Affix text="Rp " textStyle={styles.affixStyle} />
+                  }
+                />
+              </View>
+            )}
           </View>
 
+          {/* 4. Stok Awal + Min. Stok */}
           {!isCommodity && (
             <View style={styles.rowInputs}>
               <View style={[styles.inputGroup, styles.halfInput]}>
@@ -500,6 +452,72 @@ function ProductFormScreen() {
                   textColor={colors.red500}
                 />
               </View>
+            </View>
+          )}
+
+          {/* 5. Kategori */}
+          {!isCommodity && (
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>Kategori</Text>
+              <Menu
+                visible={categoryMenuVisible}
+                onDismiss={() => setCategoryMenuVisible(false)}
+                anchor={
+                  <TouchableOpacity
+                    activeOpacity={0.8}
+                    onPress={() => setCategoryMenuVisible(true)}
+                    style={styles.dropdownTrigger}
+                  >
+                    <Text
+                      style={
+                        category
+                          ? styles.dropdownText
+                          : styles.dropdownPlaceholder
+                      }
+                    >
+                      {category || 'Pilih Kategori'}
+                    </Text>
+                    <Icon
+                      name="chevron-down"
+                      size={20}
+                      color={colors.gray500}
+                    />
+                  </TouchableOpacity>
+                }
+              >
+                {availableCategories.map(cat => (
+                  <Menu.Item
+                    key={cat}
+                    onPress={() => {
+                      setCategory(cat);
+                      setIsNewCategory(false);
+                      setCategoryMenuVisible(false);
+                    }}
+                    title={cat}
+                  />
+                ))}
+                <Menu.Item
+                  onPress={() => {
+                    setCategoryMenuVisible(false);
+                    setIsNewCategory(true);
+                    setCategory('');
+                  }}
+                  title="+ Buat Kategori Baru"
+                />
+              </Menu>
+
+              {isNewCategory && (
+                <TextInput
+                  placeholder="Tulis Kategori Baru..."
+                  value={category}
+                  onChangeText={setCategory}
+                  mode="outlined"
+                  outlineColor={colors.gray200}
+                  activeOutlineColor={colors.black}
+                  style={[styles.textInput, styles.marginTop8]}
+                  contentStyle={styles.textInputContent}
+                />
+              )}
             </View>
           )}
         </ScrollView>
@@ -555,73 +573,74 @@ function ProductFormScreen() {
 }
 
 const styles = StyleSheet.create({
-  photoSection: {
-    alignItems: 'center',
-    marginBottom: spacing.lg,
-    marginTop: spacing.sm,
-  },
-  photoPicker: {
-    width: 140,
-    height: 140,
-    borderRadius: borderRadius.xl,
-    overflow: 'hidden',
-    backgroundColor: colors.gray100,
-    borderWidth: 1,
-    borderColor: colors.gray200,
-    borderStyle: 'dashed',
-  },
-  photoPreview: {
-    width: '100%',
-    height: '100%',
-    resizeMode: 'cover',
-  },
-  photoPlaceholder: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  photoPlaceholderText: {
-    fontSize: fontSize.sm,
-    color: colors.gray400,
-    marginTop: 4,
-  },
-  photoActions: {
-    flexDirection: 'row',
-    gap: 8,
-    marginTop: 12,
-  },
-  photoActionBtn: {
-    borderColor: colors.gray300,
-    borderRadius: borderRadius.md,
-  },
-  photoActionContent: {
-    height: 36,
-  },
   safeArea: {
     flex: 1,
     backgroundColor: colors.white,
   },
   flexContainer: {
     flex: 1,
-    backgroundColor: colors.gray50,
+    backgroundColor: colors.gray100,
   },
   scrollContent: {
     padding: spacing.lg,
     paddingBottom: 32,
   },
-  sectionHeader: {
+  // Segmented Control
+  typeSegmentedControl: {
+    flexDirection: 'row',
+    backgroundColor: colors.white,
+    borderRadius: borderRadius.md,
+    padding: 3,
+    marginBottom: spacing.lg,
+  },
+  typeSegment: {
+    flex: 1,
+    paddingVertical: 10,
+    alignItems: 'center',
+    borderRadius: borderRadius.sm,
+  },
+  typeSegmentActive: {
+    backgroundColor: colors.black,
+  },
+  typeSegmentText: {
+    fontSize: fontSize.md,
+    fontWeight: fontWeight.semibold,
+    color: colors.black,
+  },
+  typeSegmentTextActive: {
+    color: colors.white,
+  },
+  // Photo + Name Row
+  photoNameRow: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: spacing.lg,
-    marginTop: spacing.sm,
   },
-  sectionTitle: {
-    fontSize: fontSize.md,
-    fontWeight: fontWeight.extrabold,
-    color: colors.gray600,
-    marginLeft: spacing.sm,
-    letterSpacing: 0.5,
+  photoThumbnailContainer: {
+    width: 56,
+    height: 56,
+    borderRadius: borderRadius.md,
+    overflow: 'hidden',
+    backgroundColor: colors.gray200,
+    borderWidth: 1,
+    borderColor: colors.gray200,
+    borderStyle: 'dashed',
+    marginRight: spacing.md,
   },
+  photoThumbnail: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
+  },
+  photoThumbnailPlaceholder: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  nameInputContainer: {
+    flex: 1,
+  },
+  // Form inputs
   inputGroup: {
     marginBottom: spacing.lg,
   },
@@ -636,11 +655,11 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.md,
     height: 48,
   },
-  marginTop8: {
-    marginTop: 8,
-  },
   textInputContent: {
     paddingHorizontal: 12,
+  },
+  marginTop8: {
+    marginTop: 8,
   },
   affixStyle: {
     fontWeight: fontWeight.bold,
@@ -666,11 +685,6 @@ const styles = StyleSheet.create({
     fontSize: fontSize.lg,
     color: colors.gray400,
   },
-  divider: {
-    height: 1,
-    backgroundColor: colors.gray200,
-    marginVertical: 20,
-  },
   rowInputs: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -679,30 +693,7 @@ const styles = StyleSheet.create({
   halfInput: {
     flex: 1,
   },
-  commoditySwitchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: colors.green100,
-    borderRadius: borderRadius.md,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    marginTop: 12,
-    borderWidth: 1,
-    borderColor: colors.green200,
-  },
-  commoditySwitchLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  commodityIcon: {
-    marginRight: 8,
-  },
-  commodityText: {
-    color: colors.green700,
-    fontWeight: fontWeight.bold,
-    fontSize: fontSize.md,
-  },
+  // Footer
   footerContainer: {
     padding: spacing.lg,
     backgroundColor: colors.white,

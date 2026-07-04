@@ -23,6 +23,7 @@ export interface UseInventoryFilters {
   search: string;
   category: string;
   lowStockOnly: boolean;
+  sortBy?: 'name' | 'stock' | 'price';
 }
 
 function getUnit(name: string, type: 'PRODUCT' | 'COMMODITY'): string {
@@ -134,15 +135,19 @@ export function useInventory(filters?: UseInventoryFilters) {
     return allItems.filter(item => item.isLowStock);
   }, [allItems, filters?.lowStockOnly]);
 
-  const sortedItems = useMemo(
-    () =>
-      [...filteredItems].sort((a, b) => {
-        if (a.isLowStock && !b.isLowStock) return -1;
-        if (!a.isLowStock && b.isLowStock) return 1;
-        return a.name.localeCompare(b.name);
-      }),
-    [filteredItems],
-  );
+  const sortedItems = useMemo(() => {
+    const items = [...filteredItems];
+    const sort = filters?.sortBy || 'name';
+    switch (sort) {
+      case 'stock':
+        return items.sort((a, b) => a.stock - b.stock);
+      case 'price':
+        return items.sort((a, b) => b.price - a.price);
+      case 'name':
+      default:
+        return items.sort((a, b) => a.name.localeCompare(b.name));
+    }
+  }, [filteredItems, filters?.sortBy]);
 
   const categories = useMemo(() => {
     const uniqueCategories = Array.from(
