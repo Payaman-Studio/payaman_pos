@@ -36,6 +36,7 @@ export async function importDatabaseFromFile(sourceUri: string): Promise<Transfe
   }
 
   const tempPath = `${RNFS.CachesDirectoryPath}/waroeng_import_temp.db`;
+  const backupPath = `${RNFS.CachesDirectoryPath}/waroeng_backup.db.bak`;
 
   try {
     await RNFS.copyFile(sourceUri, tempPath);
@@ -43,13 +44,30 @@ export async function importDatabaseFromFile(sourceUri: string): Promise<Transfe
     return { success: false, message: 'Gagal membaca file yang dipilih' };
   }
 
+  closeDatabase();
+
   try {
-    closeDatabase();
+    await RNFS.copyFile(dbPath, backupPath);
+  } catch {
+    getDatabase();
+    return { success: false, message: 'Gagal membuat cadangan database sebelumnya' };
+  }
+
+  try {
     await RNFS.copyFile(tempPath, dbPath);
     return { success: true, message: 'Database berhasil diganti' };
   } catch (e) {
+    try {
+      await RNFS.copyFile(backupPath, dbPath);
+    } catch {
+      getDatabase();
+      return {
+        success: false,
+        message: 'Gagal mengimpor dan gagal memulihkan cadangan — database mungkin korup',
+      };
+    }
     const message = e instanceof Error ? e.message : 'Gagal mengimpor database';
-    return { success: false, message };
+    return { success: false, message: `Impor gagal, database dikembalikan: ${message}` };
   } finally {
     getDatabase();
   }
