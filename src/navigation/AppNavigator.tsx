@@ -70,7 +70,7 @@ function TabNavigator() {
         name="Cashier"
         component={CashierScreen}
         options={{
-          title: 'LINLIN',
+          title: 'WAROENG',
           tabBarLabel: 'Kasir',
           tabBarIcon: cashierIcon,
         }}
@@ -79,8 +79,8 @@ function TabNavigator() {
         name="Inventory"
         component={InventoryScreen}
         options={{
-          title: 'Inventori',
-          tabBarLabel: 'Inventori',
+          title: 'Produk',
+          tabBarLabel: 'Produk',
           tabBarIcon: inventoryIcon,
         }}
       />

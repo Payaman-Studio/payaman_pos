@@ -458,120 +458,120 @@ function CashierScreen() {
             />
           )}
 
-          {/* RINGKASAN PEMBAYARAN */}
-          <View style={styles.summaryContainer}>
-            <View style={styles.summaryRow}>
-              <Text style={styles.summaryLabel}>Total Belanja</Text>
-              <Text style={styles.summaryValue}>
-                {formatRupiah(totalSales)}
-              </Text>
-            </View>
-
-            {totalPurchases > 0 && (
+          {/* RINGKASAN PEMBAYARAN — hanya tampil jika ada item di keranjang */}
+          {cartItems.length > 0 && (
+            <View style={styles.summaryContainer}>
               <View style={styles.summaryRow}>
-                <Text style={styles.summaryLabel}>Total Beli Komoditas</Text>
-                <Text style={[styles.summaryValue, styles.textGreen]}>
-                  {formatRupiah(-totalPurchases)}
+                <Text style={styles.summaryLabel}>Total Belanja</Text>
+                <Text style={styles.summaryValue}>
+                  {formatRupiah(totalSales)}
                 </Text>
               </View>
-            )}
 
-            <View style={styles.netAmountRow}>
-              <View style={styles.netLabelLeft}>
-                {isWarungPay && (
-                  <Icon
-                    name="information-outline"
-                    size={20}
-                    color="#DC2626"
-                    style={styles.infoIcon}
-                  />
-                )}
+              {totalPurchases > 0 && (
+                <View style={styles.summaryRow}>
+                  <Text style={styles.summaryLabel}>Total Beli Komoditas</Text>
+                  <Text style={[styles.summaryValue, styles.textGreen]}>
+                    {formatRupiah(-totalPurchases)}
+                  </Text>
+                </View>
+              )}
+
+              <View style={styles.netAmountRow}>
+                <View style={styles.netLabelLeft}>
+                  {isWarungPay && (
+                    <Icon
+                      name="information-outline"
+                      size={20}
+                      color="#DC2626"
+                      style={styles.infoIcon}
+                    />
+                  )}
+                  <Text
+                    style={
+                      isWarungPay ? styles.payStatusRed : styles.payStatusBlack
+                    }
+                  >
+                    {isWarungPay ? 'WARUNG HARUS BAYAR' : 'TOTAL'}
+                  </Text>
+                </View>
                 <Text
-                  style={
-                    isWarungPay ? styles.payStatusRed : styles.payStatusBlack
-                  }
+                  style={[
+                    styles.netAmountVal,
+                    isWarungPay ? styles.textRed : styles.textBlack,
+                  ]}
                 >
-                  {isWarungPay ? 'WARUNG HARUS BAYAR' : 'TOTAL'}
+                  {formatRupiah(finalAmount)}
                 </Text>
               </View>
-              <Text
+
+              {isWarungPay && (
+                <View style={styles.summaryRow}>
+                  <Text style={styles.summaryLabel}>Tunai Diserahkan</Text>
+                  <TextInput
+                    selectTextOnFocus
+                    value={cashReceived}
+                    onChangeText={setCashReceived}
+                    keyboardType="numeric"
+                    mode="outlined"
+                    outlineColor="#D1D5DB"
+                    activeOutlineColor="#000000"
+                    style={styles.cashInput}
+                    contentStyle={styles.cashInputContent}
+                    left={
+                      <TextInput.Affix text="Rp " textStyle={styles.affixStyle} />
+                    }
+                  />
+                </View>
+              )}
+
+              {!isWarungPay && finalAmount > 0 && (
+                <View style={styles.summaryRow}>
+                  <Text style={styles.summaryLabel}>Tunai Diterima</Text>
+                  <TextInput
+                    selectTextOnFocus={true}
+                    value={cashReceived}
+                    onChangeText={setCashReceived}
+                    keyboardType="numeric"
+                    mode="outlined"
+                    outlineColor="#D1D5DB"
+                    activeOutlineColor="#000000"
+                    style={styles.cashInput}
+                    contentStyle={styles.cashInputContent}
+                    left={
+                      <TextInput.Affix text="Rp " textStyle={styles.affixStyle} />
+                    }
+                  />
+                </View>
+              )}
+
+              {!isWarungPay && finalAmount > 0 && (
+                <View style={styles.summaryRow}>
+                  <Text style={styles.summaryLabel}>KEMBALIAN</Text>
+                  <Text style={styles.changeAmountText}>
+                    {changeAmount.toLocaleString('id-ID')}
+                  </Text>
+                </View>
+              )}
+
+              <View style={styles.divider} />
+
+              <Button
+                mode="contained"
+                icon={isWarungPay ? 'cash-multiple' : 'cash-register'}
+                onPress={handleCheckout}
+                disabled={isSubmitting}
+                loading={isSubmitting}
                 style={[
-                  styles.netAmountVal,
-                  isWarungPay ? styles.textRed : styles.textBlack,
+                  styles.checkoutBtn,
+                  isWarungPay ? styles.checkoutBtnGreen : styles.checkoutBtnBlack,
                 ]}
+                labelStyle={styles.checkoutBtnLabel}
               >
-                {formatRupiah(finalAmount)}
-              </Text>
+                {isWarungPay ? 'Serahkan Uang ke Pelanggan' : 'Terima Pembayaran'}
+              </Button>
             </View>
-
-            {isWarungPay && (
-              <View style={styles.summaryRow}>
-                <Text style={styles.summaryLabel}>Tunai Diserahkan</Text>
-                <TextInput
-                  selectTextOnFocus
-                  value={cashReceived}
-                  onChangeText={setCashReceived}
-                  keyboardType="numeric"
-                  mode="outlined"
-                  outlineColor="#D1D5DB"
-                  activeOutlineColor="#000000"
-                  style={styles.cashInput}
-                  contentStyle={styles.cashInputContent}
-                  left={
-                    <TextInput.Affix text="Rp " textStyle={styles.affixStyle} />
-                  }
-                />
-              </View>
-            )}
-
-            {/* Input Tunai Diterima jika pelanggan harus bayar */}
-            {!isWarungPay && finalAmount > 0 && (
-              <View style={styles.summaryRow}>
-                <Text style={styles.summaryLabel}>Tunai Diterima</Text>
-                <TextInput
-                  selectTextOnFocus={true}
-                  value={cashReceived}
-                  onChangeText={setCashReceived}
-                  keyboardType="numeric"
-                  mode="outlined"
-                  outlineColor="#D1D5DB"
-                  activeOutlineColor="#000000"
-                  style={styles.cashInput}
-                  contentStyle={styles.cashInputContent}
-                  left={
-                    <TextInput.Affix text="Rp " textStyle={styles.affixStyle} />
-                  }
-                />
-              </View>
-            )}
-
-            {!isWarungPay && finalAmount > 0 && (
-              <View style={styles.summaryRow}>
-                <Text style={styles.summaryLabel}>KEMBALIAN</Text>
-                <Text style={styles.changeAmountText}>
-                  {changeAmount.toLocaleString('id-ID')}
-                </Text>
-              </View>
-            )}
-
-            <View style={styles.divider} />
-
-            {/* Status Transaksi & Checkout */}
-            <Button
-              mode="contained"
-              icon={isWarungPay ? 'cash-multiple' : 'cash-register'}
-              onPress={handleCheckout}
-              disabled={isSubmitting || cartItems.length === 0}
-              loading={isSubmitting}
-              style={[
-                styles.checkoutBtn,
-                isWarungPay ? styles.checkoutBtnGreen : styles.checkoutBtnBlack,
-              ]}
-              labelStyle={styles.checkoutBtnLabel}
-            >
-              {isWarungPay ? 'Serahkan Uang ke Pelanggan' : 'Terima Pembayaran'}
-            </Button>
-          </View>
+          )}
         </View>
       </KeyboardAvoidingView>
 
