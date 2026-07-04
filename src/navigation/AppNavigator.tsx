@@ -9,6 +9,7 @@ import InventoryScreen from '../screens/InventoryScreen';
 import ReportScreen from '../screens/ReportScreen';
 import ProductFormScreen from '../screens/ProductFormScreen';
 import TransactionListScreen from '../screens/TransactionListScreen';
+import TransactionDetailScreen from '../screens/TransactionDetailScreen';
 import PaymentScreen from '../screens/PaymentScreen';
 import { RootTabParamList, RootStackParamList } from './types';
 import { colors } from '../constants/theme';
@@ -123,6 +124,14 @@ function AppNavigator() {
         component={TransactionListScreen}
         options={{
           title: 'Riwayat Transaksi',
+          headerTintColor: colors.black,
+        }}
+      />
+      <Stack.Screen
+        name="TransactionDetail"
+        component={TransactionDetailScreen}
+        options={{
+          title: 'Detail Transaksi',
           headerTintColor: colors.black,
         }}
       />

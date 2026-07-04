@@ -4,6 +4,8 @@ import * as dbTransactions from '../database/dbTransactions';
 import * as dbTransactionDetails from '../database/dbTransactionDetails';
 import type { Transaction, TransactionDetail } from '../database/types';
 
+export type Period = 'today' | 'week' | 'month' | 'custom';
+
 export interface TransactionWithDetails extends Transaction {
   details: TransactionDetail[];
   itemCount: number;
@@ -16,7 +18,7 @@ interface ItemNameRecord {
   name: string;
 }
 
-function buildItemNameMap(details: TransactionDetail[]): Map<string, string> {
+export function buildItemNameMap(details: TransactionDetail[]): Map<string, string> {
   const db = getDatabase();
   const map = new Map<string, string>();
 
@@ -56,12 +58,122 @@ function buildItemNameMap(details: TransactionDetail[]): Map<string, string> {
   return map;
 }
 
-function getTransactionType(details: TransactionDetail[]): 'TOKO' | 'CITIZEN' | 'MIXED' {
+export function getTransactionType(details: TransactionDetail[]): 'TOKO' | 'CITIZEN' | 'MIXED' {
   const hasProduct = details.some((d) => d.item_type === 'PRODUCT');
   const hasCommodity = details.some((d) => d.item_type === 'COMMODITY');
   if (hasProduct && hasCommodity) return 'MIXED';
   if (hasCommodity) return 'CITIZEN';
   return 'TOKO';
+}
+
+function getPeriodRange(period: Period, customFrom?: string, customTo?: string) {
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, '0');
+  const d = String(now.getDate()).padStart(2, '0');
+  const zeroPad = (n: number) => String(n).padStart(2, '0');
+
+  let dateFrom: string;
+  let dateTo: string;
+  let prevFrom: string;
+  let prevTo: string;
+
+  switch (period) {
+    case 'today': {
+      dateFrom = `${y}-${m}-${d} 00:00:00`;
+      dateTo = `${y}-${m}-${d} 23:59:59`;
+      const yesterday = new Date(now);
+      yesterday.setDate(yesterday.getDate() - 1);
+      const yY = yesterday.getFullYear();
+      const yM = zeroPad(yesterday.getMonth() + 1);
+      const yD = zeroPad(yesterday.getDate());
+      prevFrom = `${yY}-${yM}-${yD} 00:00:00`;
+      prevTo = `${yY}-${yM}-${yD} 23:59:59`;
+      break;
+    }
+    case 'week': {
+      const weekAgo = new Date(now);
+      weekAgo.setDate(weekAgo.getDate() - 6);
+      dateFrom = `${weekAgo.getFullYear()}-${zeroPad(weekAgo.getMonth() + 1)}-${zeroPad(weekAgo.getDate())} 00:00:00`;
+      dateTo = `${y}-${m}-${d} 23:59:59`;
+      const prevWeekEnd = new Date(weekAgo);
+      prevWeekEnd.setDate(prevWeekEnd.getDate() - 1);
+      const prevWeekStart = new Date(prevWeekEnd);
+      prevWeekStart.setDate(prevWeekStart.getDate() - 6);
+      prevFrom = `${prevWeekStart.getFullYear()}-${zeroPad(prevWeekStart.getMonth() + 1)}-${zeroPad(prevWeekStart.getDate())} 00:00:00`;
+      prevTo = `${prevWeekEnd.getFullYear()}-${zeroPad(prevWeekEnd.getMonth() + 1)}-${zeroPad(prevWeekEnd.getDate())} 23:59:59`;
+      break;
+    }
+    case 'month': {
+      dateFrom = `${y}-${m}-01 00:00:00`;
+      dateTo = `${y}-${m}-${d} 23:59:59`;
+      const prevMonth = new Date(now.getFullYear(), now.getMonth(), 0);
+      const pY = prevMonth.getFullYear();
+      const pM = zeroPad(prevMonth.getMonth() + 1);
+      const pD = zeroPad(prevMonth.getDate());
+      prevFrom = `${pY}-${pM}-01 00:00:00`;
+      prevTo = `${pY}-${pM}-${pD} 23:59:59`;
+      break;
+    }
+    case 'custom': {
+      dateFrom = customFrom ? `${customFrom} 00:00:00` : `${y}-${m}-${d} 00:00:00`;
+      dateTo = customTo ? `${customTo} 23:59:59` : `${y}-${m}-${d} 23:59:59`;
+      const fromDt = new Date(dateFrom);
+      const toDt = new Date(dateTo);
+      const diffMs = toDt.getTime() - fromDt.getTime();
+      const prevFromDt = new Date(fromDt.getTime() - diffMs - 86400000);
+      const prevToDt = new Date(fromDt.getTime() - 86400000);
+      prevFrom = `${prevFromDt.getFullYear()}-${zeroPad(prevFromDt.getMonth() + 1)}-${zeroPad(prevFromDt.getDate())} 00:00:00`;
+      prevTo = `${prevToDt.getFullYear()}-${zeroPad(prevToDt.getMonth() + 1)}-${zeroPad(prevToDt.getDate())} 23:59:59`;
+      break;
+    }
+  }
+
+  return { dateFrom, dateTo, prevFrom, prevTo };
+}
+
+export function useTransactionSummary(period?: Period, customFrom?: string, customTo?: string) {
+  const query = useQuery({
+    queryKey: ['transactions', 'summary', period || 'today', customFrom, customTo],
+    queryFn: async () => {
+      const range = getPeriodRange(period || 'today', customFrom, customTo);
+
+      const { data: currentTx } = await dbTransactions.getAll({
+        dateFrom: range.dateFrom,
+        dateTo: range.dateTo,
+      });
+
+      const { data: prevTx } = await dbTransactions.getAll({
+        dateFrom: range.prevFrom,
+        dateTo: range.prevTo,
+      });
+
+      const dailyTotals = await dbTransactions.getDailyTotals(7);
+
+      const currentNet = currentTx.reduce((s, t) => s + t.net_amount, 0);
+      const previousNet = prevTx.reduce((s, t) => s + t.net_amount, 0);
+
+      let changePercent: number | null = null;
+      if (previousNet > 0) {
+        changePercent = Math.round(((currentNet - previousNet) / previousNet) * 100);
+      }
+
+      return {
+        totalTransactions: currentTx.length,
+        totalSales: currentTx.reduce((s, t) => s + t.total_sales, 0),
+        totalPurchases: currentTx.reduce((s, t) => s + t.total_purchases, 0),
+        totalNet: currentNet,
+        totalPaid: currentTx.reduce((s, t) => s + t.total_paid, 0),
+        changePercent,
+        previousTotal: previousNet,
+        dailyTotals,
+      };
+    },
+    staleTime: 30_000,
+    gcTime: 5 * 60_000,
+  });
+
+  return query;
 }
 
 export function useRecentTransactions(limit = 5) {
@@ -113,27 +225,24 @@ export function useRecentTransactions(limit = 5) {
   return query;
 }
 
-export function useTransactionSummary() {
+export function useTransactionDetail(transactionId: string) {
   const query = useQuery({
-    queryKey: ['transactions', 'summary'],
+    queryKey: ['transaction-detail', transactionId],
     queryFn: async () => {
-      const now = new Date();
-      const startOfDay = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} 00:00:00`;
+      const tx = await dbTransactions.getById(transactionId);
+      if (!tx) throw new Error('Transaksi tidak ditemukan');
 
-      const { data: todayTransactions } = await dbTransactions.getAll({
-        dateFrom: startOfDay,
-      });
-
-      const totalTransactions = todayTransactions.length;
-      const totalSales = todayTransactions.reduce((s, t) => s + t.total_sales, 0);
-      const totalPurchases = todayTransactions.reduce((s, t) => s + t.total_purchases, 0);
-      const totalNet = todayTransactions.reduce((s, t) => s + t.net_amount, 0);
+      const { data: details } = await dbTransactionDetails.getByTransactionId(transactionId);
+      const nameMap = buildItemNameMap(details);
 
       return {
-        totalTransactions,
-        totalSales,
-        totalPurchases,
-        totalNet,
+        ...tx,
+        items: details.map((d) => ({
+          ...d,
+          name: nameMap.get(d.item_id) || (d.item_type === 'PRODUCT' ? 'Produk' : 'Komoditas'),
+          subtotal: d.quantity * d.price_at_sale,
+        })),
+        type: getTransactionType(details),
       };
     },
     staleTime: 30_000,

@@ -90,6 +90,69 @@ export async function store(
   return results[0] as unknown as Transaction;
 }
 
+export async function getDailyTotals(days: number): Promise<{ date: string; total: number }[]> {
+  const db = getDatabase();
+  const { results } = db.execute(
+    `SELECT date(created_at) as date, SUM(net_amount) as total
+     FROM transactions
+     WHERE created_at >= datetime('now', 'localtime', '-${days} days')
+     GROUP BY date(created_at)
+     ORDER BY date ASC`,
+  );
+  return results as unknown as { date: string; total: number }[];
+}
+
+export async function getNetTotalBetween(dateFrom: string, dateTo: string): Promise<number> {
+  const db = getDatabase();
+  const { results } = db.execute(
+    'SELECT COALESCE(SUM(net_amount), 0) as total FROM transactions WHERE created_at >= ? AND created_at <= ?',
+    [dateFrom, dateTo],
+  );
+  return Number(results[0].total);
+}
+
+export async function removeWithRestore(id: string): Promise<void> {
+  const db = getDatabase();
+  db.execute('BEGIN');
+
+  try {
+    const { results: details } = db.execute(
+      'SELECT * FROM transaction_details WHERE transaction_id = ?',
+      [id],
+    );
+    const rows = details as unknown as {
+      item_type: string;
+      item_id: string;
+      quantity: number;
+      flow_direction: string;
+    }[];
+
+    for (const row of rows) {
+      if (row.item_type === 'PRODUCT') {
+        if (row.flow_direction === 'OUT') {
+          db.execute('UPDATE products SET stock = stock + ? WHERE id = ?', [row.quantity, row.item_id]);
+        } else {
+          db.execute('UPDATE products SET stock = stock - ? WHERE id = ?', [row.quantity, row.item_id]);
+        }
+      } else if (row.item_type === 'COMMODITY') {
+        if (row.flow_direction === 'OUT') {
+          db.execute('UPDATE commodities SET stock = stock + ? WHERE id = ?', [row.quantity, row.item_id]);
+        } else {
+          db.execute('UPDATE commodities SET stock = stock - ? WHERE id = ?', [row.quantity, row.item_id]);
+        }
+      }
+    }
+
+    db.execute('DELETE FROM transaction_details WHERE transaction_id = ?', [id]);
+    db.execute('DELETE FROM transactions WHERE id = ?', [id]);
+
+    db.execute('COMMIT');
+  } catch (err) {
+    db.execute('ROLLBACK');
+    throw err;
+  }
+}
+
 export async function remove(id: string): Promise<void> {
   const db = getDatabase();
   db.execute('DELETE FROM transactions WHERE id = ?', [id]);

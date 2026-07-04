@@ -244,7 +244,7 @@ function CashierScreen() {
                 right={
                   <TextInput.Icon
                     icon="barcode-scan"
-                    color={colors.gray400}
+                    color={colors.black}
                     onPress={() => setBarcodeScannerVisible(true)}
                   />
                 }
