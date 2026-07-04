@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { Modal, View, StyleSheet, Text, TouchableOpacity, StatusBar, Platform, PermissionsAndroid } from 'react-native';
 import { Camera, CameraType } from 'react-native-camera-kit';
+import { colors, borderRadius, fontSize, fontWeight } from '../constants/theme';
 
 type BarcodeFormat =
   | 'code-128' | 'code-39' | 'code-93' | 'codabar'
@@ -105,8 +106,8 @@ function BarcodeScannerModal({
           cameraType={CameraType.Back}
           scanBarcode
           showFrame
-          laserColor="#DC2626"
-          frameColor="#FFFFFF"
+          laserColor={colors.red500}
+          frameColor={colors.white}
           scanThrottleDelay={500}
           onReadCode={handleReadCode}
           allowedBarcodeTypes={
@@ -147,35 +148,35 @@ const styles = StyleSheet.create({
   },
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.6)',
+    backgroundColor: colors.overlay,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 32,
   },
   permissionBox: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
+    backgroundColor: colors.white,
+    borderRadius: borderRadius.xxl,
     padding: 28,
     alignItems: 'center',
     width: '100%',
     maxWidth: 320,
   },
   permissionTitle: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: '#111827',
+    fontSize: fontSize.xxl,
+    fontWeight: fontWeight.extrabold,
+    color: colors.gray900,
     marginBottom: 12,
   },
   permissionText: {
-    fontSize: 14,
-    color: '#6B7280',
+    fontSize: fontSize.md,
+    color: colors.gray500,
     textAlign: 'center',
     lineHeight: 20,
     marginBottom: 20,
   },
   permissionBtn: {
-    backgroundColor: '#000000',
-    borderRadius: 10,
+    backgroundColor: colors.black,
+    borderRadius: borderRadius.lg,
     paddingVertical: 14,
     paddingHorizontal: 32,
     width: '100%',
@@ -183,24 +184,24 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   permissionBtnText: {
-    color: '#FFFFFF',
-    fontSize: 15,
-    fontWeight: '700',
+    color: colors.white,
+    fontSize: fontSize.lg,
+    fontWeight: fontWeight.bold,
   },
   permissionCancel: {
     paddingVertical: 8,
   },
   permissionCancelText: {
-    color: '#6B7280',
-    fontSize: 14,
+    color: colors.gray500,
+    fontSize: fontSize.md,
   },
   scanHint: {
     position: 'absolute',
     bottom: 120,
     alignSelf: 'center',
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: '600',
+    color: colors.white,
+    fontSize: fontSize.md,
+    fontWeight: fontWeight.semibold,
     textShadowColor: 'rgba(0,0,0,0.6)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 4,
@@ -210,14 +211,14 @@ const styles = StyleSheet.create({
     top: 60,
     right: 20,
     backgroundColor: 'rgba(0,0,0,0.5)',
-    borderRadius: 20,
+    borderRadius: borderRadius.xxl,
     paddingVertical: 8,
     paddingHorizontal: 18,
   },
   closeBtnText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: '700',
+    color: colors.white,
+    fontSize: fontSize.md,
+    fontWeight: fontWeight.bold,
   },
 });
 

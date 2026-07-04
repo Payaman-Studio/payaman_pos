@@ -30,6 +30,7 @@ import { RootStackParamList } from '../navigation/types';
 import BarcodeScannerModal from '../components/BarcodeScannerModal';
 import { savePhotoToStorage } from '../database/photoStorage';
 import { generateId } from '../database';
+import { colors, spacing, borderRadius, fontSize, fontWeight } from '../constants/theme';
 
 type ProductFormScreenRouteProp = RouteProp<RootStackParamList, 'ProductForm'>;
 type ProductFormScreenNavigationProp = NativeStackNavigationProp<
@@ -235,7 +236,7 @@ function ProductFormScreen() {
 
   return (
     <View style={[styles.safeArea, { paddingBottom: insets.bottom }]}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+      <StatusBar barStyle="dark-content" backgroundColor={colors.white} />
 
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -256,7 +257,7 @@ function ProductFormScreen() {
                 <Image source={{ uri: photo }} style={styles.photoPreview} />
               ) : (
                 <View style={styles.photoPlaceholder}>
-                  <Icon name="camera-plus" size={40} color="#9CA3AF" />
+                  <Icon name="camera-plus" size={40} color={colors.gray400} />
                   <Text style={styles.photoPlaceholderText}>Foto Produk</Text>
                 </View>
               )}
@@ -286,7 +287,7 @@ function ProductFormScreen() {
                   mode="text"
                   onPress={handleRemovePhoto}
                   icon="close"
-                  textColor="#DC2626"
+                  textColor={colors.red500}
                   style={styles.photoActionBtn}
                   contentStyle={styles.photoActionContent}
                 >
@@ -302,7 +303,7 @@ function ProductFormScreen() {
               <Icon
                 name="leaf"
                 size={20}
-                color="#16A34A"
+                color={colors.green600}
                 style={styles.commodityIcon}
               />
               <Text style={styles.commodityText}>Produk Komoditas Warga</Text>
@@ -310,7 +311,7 @@ function ProductFormScreen() {
             <Switch
               value={isCommodity}
               onValueChange={setIsCommodity}
-              color="#16A34A"
+              color={colors.green600}
             />
           </View>
 
@@ -318,7 +319,7 @@ function ProductFormScreen() {
 
           {/* BAGIAN 1: INFORMASI DASAR */}
           <View style={styles.sectionHeader}>
-            <Icon name="clipboard-text-outline" size={20} color="#374151" />
+            <Icon name="clipboard-text-outline" size={20} color={colors.gray700} />
             <Text style={styles.sectionTitle}>INFORMASI DASAR</Text>
           </View>
 
@@ -329,8 +330,8 @@ function ProductFormScreen() {
               value={name}
               onChangeText={setName}
               mode="outlined"
-              outlineColor="#E5E7EB"
-              activeOutlineColor="#000000"
+              outlineColor={colors.gray200}
+              activeOutlineColor={colors.black}
               style={styles.textInput}
               contentStyle={styles.textInputContent}
             />
@@ -344,14 +345,14 @@ function ProductFormScreen() {
                 value={barcode}
                 onChangeText={setBarcode}
                 mode="outlined"
-                outlineColor="#E5E7EB"
-                activeOutlineColor="#000000"
+                outlineColor={colors.gray200}
+                activeOutlineColor={colors.black}
                 style={styles.textInput}
                 contentStyle={styles.textInputContent}
                 right={
                   <TextInput.Icon
                     icon="barcode-scan"
-                    color="#000000"
+                    color={colors.black}
                     size={20}
                     onPress={() => setBarcodeScannerVisible(true)}
                   />
@@ -381,7 +382,7 @@ function ProductFormScreen() {
                     >
                       {category || 'Pilih Kategori'}
                     </Text>
-                    <Icon name="chevron-down" size={20} color="#6B7280" />
+                    <Icon name="chevron-down" size={20} color={colors.gray500} />
                   </TouchableOpacity>
                 }
               >
@@ -411,8 +412,8 @@ function ProductFormScreen() {
                   value={category}
                   onChangeText={setCategory}
                   mode="outlined"
-                  outlineColor="#E5E7EB"
-                  activeOutlineColor="#000000"
+                  outlineColor={colors.gray200}
+                  activeOutlineColor={colors.black}
                   style={[styles.textInput, styles.marginTop8]}
                   contentStyle={styles.textInputContent}
                 />
@@ -424,7 +425,7 @@ function ProductFormScreen() {
 
           {/* BAGIAN 2: HARGA & INVENTORI */}
           <View style={styles.sectionHeader}>
-            <Icon name="cash-multiple" size={20} color="#10B981" />
+            <Icon name="cash-multiple" size={20} color={colors.green500} />
             <Text style={styles.sectionTitle}>HARGA & INVENTORI</Text>
           </View>
 
@@ -437,8 +438,8 @@ function ProductFormScreen() {
                 onChangeText={setCostPrice}
                 keyboardType="numeric"
                 mode="outlined"
-                outlineColor="#E5E7EB"
-                activeOutlineColor="#000000"
+                outlineColor={colors.gray200}
+                activeOutlineColor={colors.black}
                 selectTextOnFocus
                 style={styles.textInput}
                 contentStyle={styles.textInputContent}
@@ -456,8 +457,8 @@ function ProductFormScreen() {
               onChangeText={setSellingPrice}
               keyboardType="numeric"
               mode="outlined"
-              outlineColor="#E5E7EB"
-              activeOutlineColor="#000000"
+              outlineColor={colors.gray200}
+              activeOutlineColor={colors.black}
               selectTextOnFocus
               style={styles.textInput}
               contentStyle={styles.textInputContent}
@@ -476,8 +477,8 @@ function ProductFormScreen() {
                   onChangeText={setStock}
                   keyboardType="numeric"
                   mode="outlined"
-                  outlineColor="#E5E7EB"
-                  activeOutlineColor="#000000"
+                  outlineColor={colors.gray200}
+                  activeOutlineColor={colors.black}
                   selectTextOnFocus
                   style={styles.textInput}
                   contentStyle={styles.textInputContent}
@@ -491,12 +492,12 @@ function ProductFormScreen() {
                   onChangeText={setMinStock}
                   keyboardType="numeric"
                   mode="outlined"
-                  outlineColor="#E5E7EB"
-                  activeOutlineColor="#000000"
+                  outlineColor={colors.gray200}
+                  activeOutlineColor={colors.black}
                   selectTextOnFocus
                   style={styles.textInput}
                   contentStyle={styles.textInputContent}
-                  textColor="#DC2626"
+                  textColor={colors.red500}
                 />
               </View>
             </View>
@@ -511,7 +512,7 @@ function ProductFormScreen() {
               onPress={handleDelete}
               style={styles.deleteButton}
               labelStyle={styles.deleteButtonLabel}
-              textColor="#DC2626"
+              textColor={colors.red500}
             >
               Hapus
             </Button>
@@ -556,17 +557,17 @@ function ProductFormScreen() {
 const styles = StyleSheet.create({
   photoSection: {
     alignItems: 'center',
-    marginBottom: 16,
-    marginTop: 8,
+    marginBottom: spacing.lg,
+    marginTop: spacing.sm,
   },
   photoPicker: {
     width: 140,
     height: 140,
-    borderRadius: 12,
+    borderRadius: borderRadius.xl,
     overflow: 'hidden',
-    backgroundColor: '#F3F4F6',
+    backgroundColor: colors.gray100,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: colors.gray200,
     borderStyle: 'dashed',
   },
   photoPreview: {
@@ -580,8 +581,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   photoPlaceholderText: {
-    fontSize: 12,
-    color: '#9CA3AF',
+    fontSize: fontSize.sm,
+    color: colors.gray400,
     marginTop: 4,
   },
   photoActions: {
@@ -590,49 +591,49 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   photoActionBtn: {
-    borderColor: '#D1D5DB',
-    borderRadius: 8,
+    borderColor: colors.gray300,
+    borderRadius: borderRadius.md,
   },
   photoActionContent: {
     height: 36,
   },
   safeArea: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.white,
   },
   flexContainer: {
     flex: 1,
-    backgroundColor: '#FAFAFA',
+    backgroundColor: colors.gray50,
   },
   scrollContent: {
-    padding: 16,
+    padding: spacing.lg,
     paddingBottom: 32,
   },
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
-    marginTop: 8,
+    marginBottom: spacing.lg,
+    marginTop: spacing.sm,
   },
   sectionTitle: {
-    fontSize: 14,
-    fontWeight: '800',
-    color: '#4B5563',
-    marginLeft: 8,
+    fontSize: fontSize.md,
+    fontWeight: fontWeight.extrabold,
+    color: colors.gray600,
+    marginLeft: spacing.sm,
     letterSpacing: 0.5,
   },
   inputGroup: {
-    marginBottom: 16,
+    marginBottom: spacing.lg,
   },
   inputLabel: {
     fontSize: 13,
-    fontWeight: '700',
-    color: '#374151',
+    fontWeight: fontWeight.bold,
+    color: colors.gray700,
     marginBottom: 6,
   },
   textInput: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 8,
+    backgroundColor: colors.white,
+    borderRadius: borderRadius.md,
     height: 48,
   },
   marginTop8: {
@@ -642,32 +643,32 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
   },
   affixStyle: {
-    fontWeight: '700',
-    color: '#111827',
+    fontWeight: fontWeight.bold,
+    color: colors.gray900,
   },
   dropdownTrigger: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.white,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
-    borderRadius: 5,
+    borderColor: colors.gray200,
+    borderRadius: borderRadius.sm,
     height: 48,
     paddingHorizontal: 12,
   },
   dropdownText: {
-    fontSize: 15,
-    color: '#111827',
-    fontWeight: '500',
+    fontSize: fontSize.lg,
+    color: colors.gray900,
+    fontWeight: fontWeight.medium,
   },
   dropdownPlaceholder: {
-    fontSize: 15,
-    color: '#9CA3AF',
+    fontSize: fontSize.lg,
+    color: colors.gray400,
   },
   divider: {
     height: 1,
-    backgroundColor: '#E5E7EB',
+    backgroundColor: colors.gray200,
     marginVertical: 20,
   },
   rowInputs: {
@@ -682,13 +683,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#DCFCE7',
-    borderRadius: 8,
+    backgroundColor: colors.green100,
+    borderRadius: borderRadius.md,
     paddingVertical: 12,
     paddingHorizontal: 16,
     marginTop: 12,
     borderWidth: 1,
-    borderColor: '#BBF7D0',
+    borderColor: colors.green200,
   },
   commoditySwitchLeft: {
     flexDirection: 'row',
@@ -698,41 +699,41 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   commodityText: {
-    color: '#14532D',
-    fontWeight: '700',
-    fontSize: 14,
+    color: colors.green700,
+    fontWeight: fontWeight.bold,
+    fontSize: fontSize.md,
   },
   footerContainer: {
-    padding: 16,
-    backgroundColor: '#FFFFFF',
+    padding: spacing.lg,
+    backgroundColor: colors.white,
     borderTopWidth: 0.5,
-    borderTopColor: '#E5E7EB',
+    borderTopColor: colors.gray200,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
   },
   saveButton: {
-    backgroundColor: '#000000',
-    borderRadius: 8,
+    backgroundColor: colors.black,
+    borderRadius: borderRadius.md,
     height: 48,
     justifyContent: 'center',
     flex: 1,
   },
   saveButtonLabel: {
-    color: '#FFFFFF',
-    fontSize: 15,
-    fontWeight: '800',
+    color: colors.white,
+    fontSize: fontSize.lg,
+    fontWeight: fontWeight.extrabold,
   },
   deleteButton: {
-    borderColor: '#DC2626',
-    borderRadius: 8,
+    borderColor: colors.red500,
+    borderRadius: borderRadius.md,
     height: 48,
     justifyContent: 'center',
   },
   deleteButtonLabel: {
-    color: '#DC2626',
-    fontSize: 15,
-    fontWeight: '800',
+    color: colors.red500,
+    fontSize: fontSize.lg,
+    fontWeight: fontWeight.extrabold,
   },
 });
 

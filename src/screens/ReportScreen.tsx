@@ -7,6 +7,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useRecentTransactions, useTransactionSummary } from '../hooks/useTransactions';
 import type { RootStackParamList } from '../navigation/types';
 import DataManagementModal from '../components/DataManagementModal';
+import { colors, spacing, borderRadius, fontSize, fontWeight } from '../constants/theme';
 
 const formatRupiah = (num: number) => {
   return 'Rp ' + num.toLocaleString('id-ID');
@@ -56,7 +57,7 @@ function ReportScreen() {
 
   return (
     <View style={styles.flexContainer}>
-      <StatusBar barStyle="dark-content" backgroundColor="#f2f2f2" />
+      <StatusBar barStyle="dark-content" backgroundColor={colors.gray50} />
       <ScrollView
         style={styles.container}
         refreshControl={
@@ -159,44 +160,44 @@ function ReportScreen() {
 const styles = StyleSheet.create({
   flexContainer: {
     flex: 1,
-    backgroundColor: '#f2f2f2', // Light grey background for the whole screen
+    backgroundColor: colors.gray50,
   },
   container: {
     flex: 1,
-    paddingHorizontal: 16,
-    backgroundColor: '#f2f2f2',
+    paddingHorizontal: spacing.lg,
+    backgroundColor: colors.gray50,
   },
   dateFilterContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    marginVertical: 16,
-    backgroundColor: '#e0e0e0', // Light grey background for the container
-    borderRadius: 8,
-    padding: 4, // Smaller padding to make buttons look like they're inside
+    marginVertical: spacing.lg,
+    backgroundColor: colors.gray200,
+    borderRadius: borderRadius.md,
+    padding: spacing.xs,
   },
   dateFilterButton: {
-    paddingVertical: 8,
-    paddingHorizontal: 15,
-    borderRadius: 6,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md - 1,
+    borderRadius: borderRadius.sm,
   },
   dateFilterButtonActive: {
-    backgroundColor: '#333', // Dark background for active button
-    paddingVertical: 8,
-    paddingHorizontal: 15,
-    borderRadius: 6,
+    backgroundColor: colors.gray900,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md - 1,
+    borderRadius: borderRadius.sm,
   },
   dateFilterButtonText: {
-    color: '#333', // Dark text for inactive buttons
-    fontWeight: 'bold',
+    color: colors.gray900,
+    fontWeight: fontWeight.bold,
   },
   dateFilterButtonTextActive: {
-    color: '#fff', // White text for active button
-    fontWeight: 'bold',
+    color: colors.white,
+    fontWeight: fontWeight.bold,
   },
   card: {
-    backgroundColor: '#fff',
-    borderRadius: 8,
-    padding: 16,
+    backgroundColor: colors.white,
+    borderRadius: borderRadius.md,
+    padding: spacing.lg,
     marginBottom: 10,
   },
   totalSalesCard: {
@@ -208,7 +209,7 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: 25,
-    backgroundColor: '#eee',
+    backgroundColor: colors.gray250,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -218,13 +219,13 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   summaryCard: {
-    backgroundColor: '#fff',
-    borderRadius: 8,
-    padding: 16,
+    backgroundColor: colors.white,
+    borderRadius: borderRadius.md,
+    padding: spacing.lg,
     width: '48%',
   },
   greenBorder: {
-    borderColor: '#4CAF50',
+    borderColor: colors.green600,
     borderWidth: 1,
   },
   trendContainer: {
@@ -239,18 +240,18 @@ const styles = StyleSheet.create({
   },
   progressBar: {
     height: 10,
-    backgroundColor: '#e0e0e0',
+    backgroundColor: colors.gray200,
     borderRadius: 5,
     marginTop: 5,
   },
   progressBarFill: {
     height: '100%',
-    backgroundColor: '#333', // Dark grey for Penjualan Toko
+    backgroundColor: colors.gray900,
     borderRadius: 5,
   },
   progressBarFillGreen: {
     height: '100%',
-    backgroundColor: '#4CAF50', // Green for Komoditas Warga
+    backgroundColor: colors.green600,
     borderRadius: 5,
   },
   bulletAndText: {
@@ -261,7 +262,7 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#4CAF50',
+    backgroundColor: colors.green600,
     marginRight: 5,
   },
   salesValueContainer: {
@@ -269,22 +270,22 @@ const styles = StyleSheet.create({
     justifyContent: 'space-around',
     marginTop: 15,
     borderTopWidth: 1,
-    borderTopColor: '#eee',
+    borderTopColor: colors.gray250,
     paddingTop: 10,
   },
   emptyContainer: {
-    backgroundColor: '#fff',
-    borderRadius: 8,
+    backgroundColor: colors.white,
+    borderRadius: borderRadius.md,
     padding: 32,
     alignItems: 'center',
     marginBottom: 10,
   },
   emptyText: {
-    color: '#9CA3AF',
-    fontSize: 14,
+    color: colors.gray400,
+    fontSize: fontSize.md,
   },
   greenText: {
-    color: '#4CAF50',
+    color: colors.green600,
   },
   transactionsHeader: {
     flexDirection: 'row',
@@ -293,20 +294,20 @@ const styles = StyleSheet.create({
     marginVertical: 10,
   },
   linkText: {
-    color: '#007AFF', // A common blue for links
+    color: colors.blue,
   },
   transactionCard: {
-    backgroundColor: '#fff',
-    borderRadius: 8,
-    padding: 16,
-    marginBottom: 8,
+    backgroundColor: colors.white,
+    borderRadius: borderRadius.md,
+    padding: spacing.lg,
+    marginBottom: spacing.sm,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
   greenBorderLeft: {
     borderLeftWidth: 4,
-    borderLeftColor: '#4CAF50',
+    borderLeftColor: colors.green600,
   },
   transactionTagContainer: {
     flexDirection: 'row',
@@ -314,58 +315,58 @@ const styles = StyleSheet.create({
     marginBottom: 5,
   },
   transactionId: {
-    fontWeight: 'bold',
+    fontWeight: fontWeight.bold,
     marginRight: 10,
   },
   tagToko: {
-    backgroundColor: '#333',
-    color: '#fff',
-    paddingHorizontal: 6,
+    backgroundColor: colors.gray900,
+    color: colors.white,
+    paddingHorizontal: spacing.sm - 2,
     paddingVertical: 2,
-    borderRadius: 4,
-    fontSize: 12,
+    borderRadius: borderRadius.sm - 2,
+    fontSize: fontSize.sm,
   },
   tagCitizen: {
-    backgroundColor: '#4CAF50',
-    color: '#fff',
-    paddingHorizontal: 6,
+    backgroundColor: colors.green600,
+    color: colors.white,
+    paddingHorizontal: spacing.sm - 2,
     paddingVertical: 2,
-    borderRadius: 4,
-    fontSize: 12,
+    borderRadius: borderRadius.sm - 2,
+    fontSize: fontSize.sm,
   },
   tagUnpaid: {
-    backgroundColor: '#f44336', // Red for unpaid
-    color: '#fff',
-    paddingHorizontal: 6,
+    backgroundColor: colors.red500,
+    color: colors.white,
+    paddingHorizontal: spacing.sm - 2,
     paddingVertical: 2,
-    borderRadius: 4,
-    fontSize: 12,
+    borderRadius: borderRadius.sm - 2,
+    fontSize: fontSize.sm,
   },
   transactionAmountContainer: {
     alignItems: 'flex-end',
   },
   weeklyInsightCard: {
-    backgroundColor: '#263238', // Dark blue-grey from the image
-    borderRadius: 8,
-    padding: 16,
+    backgroundColor: colors.gray800,
+    borderRadius: borderRadius.md,
+    padding: spacing.lg,
     marginTop: 10,
     marginBottom: 20,
   },
   weeklyInsightTitle: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: 'bold',
+    color: colors.white,
+    fontSize: fontSize.xxl,
+    fontWeight: fontWeight.bold,
     marginBottom: 5,
   },
   weeklyInsightText: {
-    color: '#ccc',
+    color: colors.gray300,
     marginBottom: 15,
   },
   detailButton: {
-    backgroundColor: '#4CAF50',
-    color: '#fff',
+    backgroundColor: colors.green600,
+    color: colors.white,
     paddingVertical: 10,
-    paddingHorizontal: 15,
+    paddingHorizontal: spacing.md - 1,
     borderRadius: 5,
     textAlign: 'center',
     alignSelf: 'flex-start',

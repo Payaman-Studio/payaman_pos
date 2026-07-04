@@ -43,9 +43,16 @@ export function useInventory(filters?: UseInventoryFilters) {
   const queryClient = useQueryClient();
 
   const productsQuery = useQuery({
-    queryKey: ['products'],
+    queryKey: ['products', filters?.search, filters?.category],
     queryFn: async () => {
-      const res = await dbProducts.getAll();
+      const productFilter: dbProducts.ProductFilter = {};
+      if (filters?.search) productFilter.search = filters.search;
+      if (filters?.category && filters.category !== 'Semua') {
+        productFilter.category = filters.category;
+      }
+      const res = await dbProducts.getAll(
+        Object.keys(productFilter).length > 0 ? productFilter : undefined,
+      );
       return res.data;
     },
     staleTime: 30_000,
@@ -53,9 +60,16 @@ export function useInventory(filters?: UseInventoryFilters) {
   });
 
   const commoditiesQuery = useQuery({
-    queryKey: ['commodities'],
+    queryKey: ['commodities', filters?.search, filters?.category],
     queryFn: async () => {
-      const res = await dbCommodities.getAll();
+      const commodityFilter: dbCommodities.CommodityFilter = {};
+      if (filters?.search) commodityFilter.search = filters.search;
+      if (filters?.category && filters.category !== 'Semua') {
+        commodityFilter.category = filters.category;
+      }
+      const res = await dbCommodities.getAll(
+        Object.keys(commodityFilter).length > 0 ? commodityFilter : undefined,
+      );
       return res.data;
     },
     staleTime: 30_000,
@@ -116,23 +130,9 @@ export function useInventory(filters?: UseInventoryFilters) {
   );
 
   const filteredItems = useMemo(() => {
-    if (!filters) return allItems;
-    return allItems.filter(item => {
-      if (filters.search) {
-        const searchLower = filters.search.toLowerCase();
-        const matchName = item.name.toLowerCase().includes(searchLower);
-        const matchBarcode = item.barcode ? item.barcode.toLowerCase().includes(searchLower) : false;
-        if (!matchName && !matchBarcode) return false;
-      }
-      if (filters.category && filters.category !== 'Semua') {
-        if (item.category !== filters.category) return false;
-      }
-      if (filters.lowStockOnly) {
-        if (!item.isLowStock) return false;
-      }
-      return true;
-    });
-  }, [allItems, filters]);
+    if (!filters?.lowStockOnly) return allItems;
+    return allItems.filter(item => item.isLowStock);
+  }, [allItems, filters?.lowStockOnly]);
 
   const sortedItems = useMemo(
     () =>

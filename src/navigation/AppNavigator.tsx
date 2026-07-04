@@ -10,6 +10,7 @@ import ReportScreen from '../screens/ReportScreen';
 import ProductFormScreen from '../screens/ProductFormScreen';
 import TransactionListScreen from '../screens/TransactionListScreen';
 import { RootTabParamList, RootStackParamList } from './types';
+import { colors } from '../constants/theme';
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -27,17 +28,17 @@ const reportIcon = ({ color, size }: { color: string; size: number }) => (
 );
 
 const headerStyle = {
-  backgroundColor: '#FFFFFF',
+  backgroundColor: colors.white,
   elevation: 0,
   shadowOpacity: 0,
   borderBottomWidth: 0.5,
-  borderBottomColor: '#E5E7EB',
+  borderBottomColor: colors.gray200,
 };
 
 const headerTitleStyle = {
   fontSize: 20,
   fontWeight: '600' as const,
-  color: '#000000',
+  color: colors.black,
 };
 
 function TabNavigator() {
@@ -49,11 +50,11 @@ function TabNavigator() {
         headerShown: true,
         headerStyle,
         headerTitleStyle,
-        tabBarActiveTintColor: '#000000',
-        tabBarInactiveTintColor: '#9CA3AF',
+        tabBarActiveTintColor: colors.black,
+        tabBarInactiveTintColor: colors.gray400,
         tabBarStyle: {
-          backgroundColor: '#FFFFFF',
-          borderTopColor: '#E5E7EB',
+          backgroundColor: colors.white,
+          borderTopColor: colors.gray200,
           borderTopWidth: 0.5,
           elevation: 0,
           height: Platform.OS === 'android' ? 56 + insets.bottom : 60,
@@ -70,6 +71,7 @@ function TabNavigator() {
         name="Cashier"
         component={CashierScreen}
         options={{
+          headerShown: false,
           title: 'WAROENG',
           tabBarLabel: 'Kasir',
           tabBarIcon: cashierIcon,
@@ -112,7 +114,7 @@ function AppNavigator() {
         component={ProductFormScreen}
         options={({ route }) => ({
           title: route.params?.itemId ? 'Edit Produk' : 'Tambah Produk',
-          headerTintColor: '#000000',
+          headerTintColor: colors.black,
         })}
       />
       <Stack.Screen
@@ -120,7 +122,7 @@ function AppNavigator() {
         component={TransactionListScreen}
         options={{
           title: 'Riwayat Transaksi',
-          headerTintColor: '#000000',
+          headerTintColor: colors.black,
         }}
       />
     </Stack.Navigator>

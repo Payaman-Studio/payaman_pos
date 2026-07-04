@@ -4,6 +4,7 @@ import { View, FlatList, StyleSheet, StatusBar } from 'react-native';
 import { Text } from 'react-native-paper';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useRecentTransactions, TransactionWithDetails } from '../hooks/useTransactions';
+import { colors, spacing, borderRadius, fontSize, fontWeight } from '../constants/theme';
 
 const formatRupiah = (num: number) => {
   return 'Rp ' + num.toLocaleString('id-ID');
@@ -51,11 +52,11 @@ function TransactionListScreen() {
 
   return (
     <View style={styles.safeArea}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FAFAFA" />
+      <StatusBar barStyle="dark-content" backgroundColor={colors.gray50} />
 
       {!transactions || transactions.length === 0 ? (
         <View style={styles.emptyContainer}>
-          <Icon name="receipt" size={48} color="#D1D5DB" />
+          <Icon name="receipt" size={48} color={colors.gray300} />
           <Text style={styles.emptyText}>Belum ada transaksi</Text>
         </View>
       ) : (
@@ -73,7 +74,7 @@ function TransactionListScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#FAFAFA',
+    backgroundColor: colors.gray50,
   },
   emptyContainer: {
     flex: 1,
@@ -82,68 +83,68 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   emptyText: {
-    color: '#9CA3AF',
-    fontSize: 14,
-    fontWeight: '600',
+    color: colors.gray400,
+    fontSize: fontSize.md,
+    fontWeight: fontWeight.semibold,
   },
   listContent: {
-    padding: 16,
+    padding: spacing.lg,
     gap: 10,
   },
   card: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 8,
-    padding: 14,
+    backgroundColor: colors.white,
+    borderRadius: borderRadius.md,
+    padding: spacing.md + 2,
     borderLeftWidth: 4,
-    borderLeftColor: '#111827',
+    borderLeftColor: colors.gray900,
   },
   greenBorderLeft: {
-    borderLeftColor: '#16A34A',
+    borderLeftColor: colors.green600,
   },
   cardTop: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 6,
+    marginBottom: spacing.sm - 2,
   },
   tagRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: spacing.sm,
   },
   transactionId: {
-    fontWeight: '700',
+    fontWeight: fontWeight.bold,
     fontSize: 13,
-    color: '#111827',
+    color: colors.gray900,
   },
   tagToko: {
-    backgroundColor: '#111827',
-    color: '#FFFFFF',
-    paddingHorizontal: 6,
+    backgroundColor: colors.gray900,
+    color: colors.white,
+    paddingHorizontal: spacing.sm - 2,
     paddingVertical: 2,
-    borderRadius: 4,
-    fontSize: 11,
-    fontWeight: '700',
+    borderRadius: borderRadius.sm - 2,
+    fontSize: fontSize.xs + 1,
+    fontWeight: fontWeight.bold,
     overflow: 'hidden',
   },
   tagCitizen: {
-    backgroundColor: '#16A34A',
-    color: '#FFFFFF',
-    paddingHorizontal: 6,
+    backgroundColor: colors.green600,
+    color: colors.white,
+    paddingHorizontal: spacing.sm - 2,
     paddingVertical: 2,
-    borderRadius: 4,
-    fontSize: 11,
-    fontWeight: '700',
+    borderRadius: borderRadius.sm - 2,
+    fontSize: fontSize.xs + 1,
+    fontWeight: fontWeight.bold,
     overflow: 'hidden',
   },
   netAmount: {
-    fontWeight: '800',
-    fontSize: 14,
-    color: '#111827',
+    fontWeight: fontWeight.extrabold,
+    fontSize: fontSize.md,
+    color: colors.gray900,
   },
   meta: {
-    fontSize: 12,
-    color: '#6B7280',
+    fontSize: fontSize.sm,
+    color: colors.gray500,
   },
 });
 

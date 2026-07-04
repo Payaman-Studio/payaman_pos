@@ -8,6 +8,7 @@ import {
   exportDatabaseToFile,
   importDatabaseFromFileWithPhotos,
 } from '../database/dbDataTransfer';
+import { colors, borderRadius } from '../constants/theme';
 
 interface Props {
   visible: boolean;
@@ -137,9 +138,9 @@ export default function DataManagementModal({ visible, onDismiss }: Props) {
 
 const styles = StyleSheet.create({
   modal: {
-    backgroundColor: '#fff',
+    backgroundColor: colors.white,
     margin: 20,
-    borderRadius: 12,
+    borderRadius: borderRadius.xl,
     padding: 24,
   },
   title: {
@@ -148,7 +149,7 @@ const styles = StyleSheet.create({
   },
   description: {
     marginVertical: 12,
-    color: '#555',
+    color: colors.gray600,
   },
   actionButton: {
     marginTop: 12,

@@ -24,6 +24,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import { useInventory, InventoryItem } from '../hooks/useInventory';
 import { RootStackParamList } from '../navigation/types';
+import { colors, spacing, borderRadius, fontSize, fontWeight } from '../constants/theme';
 
 // Komponen pembantu untuk menampilkan thumbnail produk/komoditas secara visual premium
 function ProductThumbnail({
@@ -37,9 +38,9 @@ function ProductThumbnail({
   type: 'PRODUCT' | 'COMMODITY';
   photo?: string | null;
 }) {
-  let backgroundColor = '#F3F4F6';
+  let backgroundColor = colors.gray100;
   let iconName = 'package-variant';
-  let iconColor = '#9CA3AF';
+  let iconColor = colors.gray400;
 
   const lowerName = name.toLowerCase();
   const lowerCat = category?.toLowerCase() || '';
@@ -49,37 +50,37 @@ function ProductThumbnail({
     lowerName.includes('bayam') ||
     lowerName.includes('kangkung')
   ) {
-    backgroundColor = '#DCFCE7';
+    backgroundColor = colors.categoryVegetable;
     iconName = 'leaf';
-    iconColor = '#16A34A';
+    iconColor = colors.green600;
   } else if (lowerName.includes('minyak') || lowerName.includes('goreng')) {
-    backgroundColor = '#FEF9C3';
+    backgroundColor = colors.categoryOil;
     iconName = 'oil';
-    iconColor = '#CA8A04';
+    iconColor = colors.amber;
   } else if (lowerName.includes('beras') || lowerName.includes('premium')) {
-    backgroundColor = '#F5E6D3';
+    backgroundColor = colors.categoryRice;
     iconName = 'barley';
-    iconColor = '#9A3412';
+    iconColor = colors.orangeDark;
   } else if (lowerName.includes('telur')) {
-    backgroundColor = '#FFEDD5';
+    backgroundColor = colors.categoryEgg;
     iconName = 'egg';
-    iconColor = '#EA580C';
+    iconColor = colors.orange;
   } else if (lowerName.includes('gula')) {
-    backgroundColor = '#E0F2FE';
+    backgroundColor = colors.categorySugar;
     iconName = 'grain';
-    iconColor = '#0284C7';
+    iconColor = colors.blue;
   } else if (
     lowerCat.includes('camilan') ||
     lowerName.includes('krupuk') ||
     lowerName.includes('keripik')
   ) {
-    backgroundColor = '#FCE7F3';
+    backgroundColor = colors.categorySnack;
     iconName = 'cookie';
-    iconColor = '#DB2777';
+    iconColor = colors.pink;
   } else if (type === 'COMMODITY') {
-    backgroundColor = '#F0FDFA';
+    backgroundColor = colors.categoryCommodity;
     iconName = 'fruit-grapes';
-    iconColor = '#0D9488';
+    iconColor = colors.emerald;
   }
 
   if (photo) {
@@ -182,7 +183,7 @@ function InventoryScreen() {
                   <Icon
                     name="alert-circle-outline"
                     size={14}
-                    color="#DC2626"
+                    color={colors.red500}
                     style={styles.alertIcon}
                   />
                 )}
@@ -215,7 +216,7 @@ function InventoryScreen() {
               onPress={() => handleDelete(item)}
               style={styles.deleteButton}
             >
-              <Icon name="delete-outline" size={20} color="#9CA3AF" />
+              <Icon name="delete-outline" size={20} color={colors.gray400} />
             </TouchableOpacity>
           </View>
         </Card>
@@ -226,7 +227,7 @@ function InventoryScreen() {
 
   return (
     <View style={styles.safeArea}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+      <StatusBar barStyle="dark-content" backgroundColor={colors.white} />
 
       <View style={styles.container}>
         {/* Search Input */}
@@ -235,11 +236,11 @@ function InventoryScreen() {
           value={search}
           onChangeText={setSearch}
           mode="outlined"
-          outlineColor="#E5E7EB"
-          activeOutlineColor="#000000"
+          outlineColor={colors.gray200}
+          activeOutlineColor={colors.black}
           style={styles.searchBar}
           contentStyle={styles.searchBarContent}
-          left={<TextInput.Icon icon="magnify" color="#9CA3AF" size={20} />}
+          left={<TextInput.Icon icon="magnify" color={colors.gray400} size={20} />}
         />
 
         {/* Kategori Filter Pills */}
@@ -286,7 +287,7 @@ function InventoryScreen() {
               <Icon
                 name="alert"
                 size={20}
-                color="#991B1B"
+                color={colors.red500}
                 style={styles.alertBannerIcon}
               />
               <Text style={styles.alertBannerText}>
@@ -307,11 +308,11 @@ function InventoryScreen() {
         {/* Main List / Content */}
         {isLoading ? (
           <View style={styles.centerContainer}>
-            <ActivityIndicator size="large" color="#000000" />
+            <ActivityIndicator size="large" color={colors.black} />
           </View>
         ) : inventoryItems.length === 0 ? (
           <View style={styles.centerContainer}>
-            <Icon name="package-variant-closed" size={48} color="#9CA3AF" />
+            <Icon name="package-variant-closed" size={48} color={colors.gray400} />
             <Text style={styles.emptyText}>Tidak ada item ditemukan</Text>
           </View>
         ) : (
@@ -330,7 +331,7 @@ function InventoryScreen() {
         {/* FAB Tambah Barang */}
         <FAB
           icon="plus"
-          color="#FFFFFF"
+          color={colors.white}
           style={styles.fab}
           onPress={() => navigation.navigate('ProductForm')}
         />
@@ -342,174 +343,174 @@ function InventoryScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.white,
   },
   container: {
     flex: 1,
-    backgroundColor: '#FAFAFA',
-    paddingHorizontal: 16,
+    backgroundColor: colors.gray50,
+    paddingHorizontal: spacing.lg,
   },
   pageTitle: {
-    fontWeight: '800',
-    color: '#111827',
-    marginTop: 16,
-    marginBottom: 16,
+    fontWeight: fontWeight.extrabold,
+    color: colors.gray900,
+    marginTop: spacing.lg,
+    marginBottom: spacing.lg,
   },
   searchBar: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 8,
+    backgroundColor: colors.white,
+    borderRadius: borderRadius.md,
     height: 48,
-    marginBottom: 16,
+    marginBottom: spacing.lg,
   },
   searchBarContent: {
     paddingLeft: 0,
   },
   categoriesWrapper: {
-    marginHorizontal: -16,
-    marginBottom: 16,
+    marginHorizontal: -spacing.lg,
+    marginBottom: spacing.lg,
   },
   categoriesContainer: {
-    paddingHorizontal: 16,
-    gap: 8,
+    paddingHorizontal: spacing.lg,
+    gap: spacing.sm,
   },
   categoryPill: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
     borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
   },
   categoryPillActive: {
-    backgroundColor: '#000000',
+    backgroundColor: colors.black,
   },
   categoryPillInactive: {
-    backgroundColor: '#E5E7EB',
+    backgroundColor: colors.gray200,
   },
   categoryText: {
-    fontSize: 14,
-    fontWeight: '600',
+    fontSize: fontSize.md,
+    fontWeight: fontWeight.semibold,
   },
   categoryTextActive: {
-    color: '#FFFFFF',
+    color: colors.white,
   },
   categoryTextInactive: {
-    color: '#4B5563',
+    color: colors.gray600,
   },
   alertBanner: {
     flexDirection: 'row',
-    backgroundColor: '#FEE2E2',
-    borderRadius: 8,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
+    backgroundColor: colors.red100,
+    borderRadius: borderRadius.md,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
     alignItems: 'center',
     justifyContent: 'space-between',
     borderLeftWidth: 4,
-    borderLeftColor: '#DC2626',
-    marginBottom: 16,
+    borderLeftColor: colors.red500,
+    marginBottom: spacing.lg,
   },
   alertBannerLeft: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   alertBannerIcon: {
-    marginRight: 8,
+    marginRight: spacing.sm,
   },
   alertBannerText: {
-    color: '#991B1B',
-    fontWeight: '700',
-    fontSize: 14,
+    color: colors.red500,
+    fontWeight: fontWeight.bold,
+    fontSize: fontSize.md,
   },
   alertBannerLink: {
-    color: '#991B1B',
-    fontWeight: '700',
-    fontSize: 14,
+    color: colors.red500,
+    fontWeight: fontWeight.bold,
+    fontSize: fontSize.md,
     textDecorationLine: 'underline',
   },
   listContainer: {
     paddingBottom: 80,
-    gap: 12,
+    gap: spacing.md,
   },
   card: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    borderColor: '#E5E7EB',
+    backgroundColor: colors.white,
+    borderRadius: borderRadius.xl,
+    borderColor: colors.gray200,
   },
   cardContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 12,
+    padding: spacing.md,
   },
   thumbnail: {
     width: 56,
     height: 56,
-    borderRadius: 8,
+    borderRadius: borderRadius.md,
     justifyContent: 'center',
     alignItems: 'center',
   },
   detailsContainer: {
     flex: 1,
-    marginLeft: 12,
+    marginLeft: spacing.md,
     justifyContent: 'center',
   },
   itemName: {
-    fontWeight: '700',
-    color: '#111827',
+    fontWeight: fontWeight.bold,
+    color: colors.gray900,
     marginBottom: 2,
   },
   skuText: {
-    color: '#9CA3AF',
-    marginBottom: 4,
+    color: colors.gray400,
+    marginBottom: spacing.xs,
   },
   stockContainer: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   alertIcon: {
-    marginRight: 4,
+    marginRight: spacing.xs,
   },
   stockText: {
-    fontWeight: '700',
+    fontWeight: fontWeight.bold,
   },
   lowStockText: {
-    color: '#DC2626',
+    color: colors.red500,
   },
   normalStockText: {
-    color: '#4B5563',
+    color: colors.gray600,
   },
   priceContainer: {
     alignItems: 'flex-end',
     justifyContent: 'center',
   },
   deleteButton: {
-    marginLeft: 8,
-    padding: 4,
+    marginLeft: spacing.sm,
+    padding: spacing.xs,
   },
   priceText: {
-    fontWeight: '800',
-    color: '#111827',
+    fontWeight: fontWeight.extrabold,
+    color: colors.gray900,
   },
   unitText: {
-    color: '#9CA3AF',
+    color: colors.gray400,
     marginTop: 2,
   },
   fab: {
     position: 'absolute',
-    margin: 16,
+    margin: spacing.lg,
     right: 0,
     bottom: 0,
-    backgroundColor: '#000000',
-    borderRadius: 16,
+    backgroundColor: colors.black,
+    borderRadius: borderRadius.xxl,
   },
   centerContainer: {
     flex: 0.7,
     justifyContent: 'center',
     alignItems: 'center',
-    gap: 8,
+    gap: spacing.sm,
   },
   emptyText: {
-    color: '#9CA3AF',
-    fontSize: 16,
-    fontWeight: '600',
+    color: colors.gray400,
+    fontSize: fontSize.xl,
+    fontWeight: fontWeight.semibold,
   },
 });
 
