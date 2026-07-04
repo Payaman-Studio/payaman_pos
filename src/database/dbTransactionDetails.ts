@@ -85,6 +85,20 @@ export async function getByTransactionId(
   return getAll({ transactionId });
 }
 
+export async function getByTransactionIds(
+  transactionIds: string[],
+): Promise<TransactionDetail[]> {
+  if (transactionIds.length === 0) return [];
+
+  const db = getDatabase();
+  const placeholders = transactionIds.map(() => '?').join(',');
+  const { results } = db.execute(
+    `SELECT * FROM transaction_details WHERE transaction_id IN (${placeholders}) ORDER BY id ASC`,
+    transactionIds,
+  );
+  return results as unknown as TransactionDetail[];
+}
+
 export async function store(
   data: Omit<TransactionDetail, 'id'>,
 ): Promise<TransactionDetail> {

@@ -11,14 +11,49 @@ export interface TransactionWithDetails extends Transaction {
   type: 'TOKO' | 'CITIZEN' | 'MIXED';
 }
 
-function getItemName(detail: TransactionDetail): string {
+interface ItemNameRecord {
+  id: string;
+  name: string;
+}
+
+function buildItemNameMap(details: TransactionDetail[]): Map<string, string> {
   const db = getDatabase();
-  if (detail.item_type === 'PRODUCT') {
-    const { results } = db.execute('SELECT name FROM products WHERE id = ?', [detail.item_id]);
-    return (results[0]?.name as string) || 'Produk';
+  const map = new Map<string, string>();
+
+  const productIds = [
+    ...new Set(
+      details.filter((d) => d.item_type === 'PRODUCT').map((d) => d.item_id),
+    ),
+  ];
+  const commodityIds = [
+    ...new Set(
+      details.filter((d) => d.item_type === 'COMMODITY').map((d) => d.item_id),
+    ),
+  ];
+
+  if (productIds.length > 0) {
+    const placeholders = productIds.map(() => '?').join(',');
+    const { results } = db.execute(
+      `SELECT id, name FROM products WHERE id IN (${placeholders})`,
+      productIds,
+    );
+    for (const row of results as unknown as ItemNameRecord[]) {
+      map.set(row.id, row.name);
+    }
   }
-  const { results } = db.execute('SELECT name FROM commodities WHERE id = ?', [detail.item_id]);
-  return (results[0]?.name as string) || 'Komoditas';
+
+  if (commodityIds.length > 0) {
+    const placeholders = commodityIds.map(() => '?').join(',');
+    const { results } = db.execute(
+      `SELECT id, name FROM commodities WHERE id IN (${placeholders})`,
+      commodityIds,
+    );
+    for (const row of results as unknown as ItemNameRecord[]) {
+      map.set(row.id, row.name);
+    }
+  }
+
+  return map;
 }
 
 function getTransactionType(details: TransactionDetail[]): 'TOKO' | 'CITIZEN' | 'MIXED' {
@@ -38,21 +73,36 @@ export function useRecentTransactions(limit = 5) {
         perPage: limit,
       });
 
-      const enriched = await Promise.all(
-        transactions.map(async (tx) => {
-          const { data: details } = await dbTransactionDetails.getByTransactionId(tx.id);
-          const itemCount = details.length;
-          const names = details.slice(0, 3).map(getItemName);
-          const itemNames = names.join(', ');
-          return {
-            ...tx,
-            details,
-            itemCount,
-            itemNames,
-            type: getTransactionType(details),
-          };
-        }),
-      );
+      const allTxIds = transactions.map((tx) => tx.id);
+      const allDetails = await dbTransactionDetails.getByTransactionIds(allTxIds);
+      const detailsByTxId = new Map<string, TransactionDetail[]>();
+      for (const d of allDetails) {
+        const list = detailsByTxId.get(d.transaction_id);
+        if (list) {
+          list.push(d);
+        } else {
+          detailsByTxId.set(d.transaction_id, [d]);
+        }
+      }
+
+      const allDetailsFlat = Array.from(detailsByTxId.values()).flat();
+      const nameMap = buildItemNameMap(allDetailsFlat);
+
+      const enriched = transactions.map((tx) => {
+        const details = detailsByTxId.get(tx.id) || [];
+        const itemCount = details.length;
+        const names = details
+          .slice(0, 3)
+          .map((d) => nameMap.get(d.item_id) || (d.item_type === 'PRODUCT' ? 'Produk' : 'Komoditas'));
+        const itemNames = names.join(', ');
+        return {
+          ...tx,
+          details,
+          itemCount,
+          itemNames,
+          type: getTransactionType(details),
+        };
+      });
 
       return enriched;
     },
