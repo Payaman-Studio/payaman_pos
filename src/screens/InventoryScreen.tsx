@@ -15,6 +15,7 @@ import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import {
   ActivityIndicator,
+  Appbar,
   Card,
   FAB,
   Menu,
@@ -185,6 +186,13 @@ function InventoryScreen() {
   return (
     <View style={styles.safeArea}>
       <StatusBar barStyle="dark-content" backgroundColor={colors.white} />
+
+      <Appbar.Header style={styles.appbarHeader}>
+        <Appbar.Content
+          title="Produk"
+          titleStyle={styles.appbarTitle}
+        />
+      </Appbar.Header>
 
       <View style={styles.container}>
         {/* Search Input */}
@@ -374,6 +382,18 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: colors.white,
+  },
+  appbarHeader: {
+    backgroundColor: colors.white,
+    elevation: 0,
+    shadowOpacity: 0,
+    borderBottomWidth: 0.5,
+    borderBottomColor: colors.gray200,
+  },
+  appbarTitle: {
+    fontSize: 20,
+    fontWeight: '600' as const,
+    color: colors.black,
   },
   container: {
     flex: 1,

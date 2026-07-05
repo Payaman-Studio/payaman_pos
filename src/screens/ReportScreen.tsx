@@ -1,4 +1,4 @@
-import { useState, useCallback, useLayoutEffect, useMemo } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import {
   ScrollView,
   View,
@@ -10,7 +10,7 @@ import {
   TextInput as RNTextInput,
 } from 'react-native';
 
-import { Text, Button, IconButton } from 'react-native-paper';
+import { Text, Button, Appbar } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -68,19 +68,6 @@ function ReportScreen() {
     transactionsRefetch();
   }, [summaryRefetch, transactionsRefetch]);
 
-  const headerRight = useCallback(
-    () => (
-      <TouchableOpacity onPress={() => setDataModalVisible(true)}>
-        <IconButton icon="database-cog-outline" size={24} />
-      </TouchableOpacity>
-    ),
-    [setDataModalVisible],
-  );
-
-  useLayoutEffect(() => {
-    navigation.setOptions({ headerRight });
-  }, [navigation, headerRight]);
-
   // Mini chart data
   const chartMax = useMemo(() => {
     if (!summary?.dailyTotals?.length) return 1;
@@ -107,6 +94,16 @@ function ReportScreen() {
   return (
     <View style={styles.flexContainer}>
       <StatusBar barStyle="dark-content" backgroundColor={colors.gray50} />
+      <Appbar.Header style={styles.appbarHeader}>
+        <Appbar.Content
+          title="Laporan"
+          titleStyle={styles.appbarTitle}
+        />
+        <Appbar.Action
+          icon="database-cog-outline"
+          onPress={() => setDataModalVisible(true)}
+        />
+      </Appbar.Header>
       <ScrollView
         style={styles.container}
         refreshControl={
@@ -301,6 +298,18 @@ const styles = StyleSheet.create({
   flexContainer: {
     flex: 1,
     backgroundColor: colors.gray50,
+  },
+  appbarHeader: {
+    backgroundColor: colors.white,
+    elevation: 0,
+    shadowOpacity: 0,
+    borderBottomWidth: 0.5,
+    borderBottomColor: colors.gray200,
+  },
+  appbarTitle: {
+    fontSize: 20,
+    fontWeight: '600' as const,
+    color: colors.black,
   },
   container: {
     flex: 1,

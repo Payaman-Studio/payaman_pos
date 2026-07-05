@@ -1,8 +1,6 @@
-import { Platform } from 'react-native';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { useState } from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { BottomNavigation } from 'react-native-paper';
 
 import CashierScreen from '../screens/CashierScreen';
 import InventoryScreen from '../screens/InventoryScreen';
@@ -11,23 +9,10 @@ import ProductFormScreen from '../screens/ProductFormScreen';
 import TransactionListScreen from '../screens/TransactionListScreen';
 import TransactionDetailScreen from '../screens/TransactionDetailScreen';
 import PaymentScreen from '../screens/PaymentScreen';
-import { RootTabParamList, RootStackParamList } from './types';
+import { RootStackParamList } from './types';
 import { colors } from '../constants/theme';
 
-const Tab = createBottomTabNavigator<RootTabParamList>();
 const Stack = createNativeStackNavigator<RootStackParamList>();
-
-const cashierIcon = ({ color, size }: { color: string; size: number }) => (
-  <Icon name="cash-register" color={color} size={size} />
-);
-
-const inventoryIcon = ({ color, size }: { color: string; size: number }) => (
-  <Icon name="package-variant-closed" color={color} size={size} />
-);
-
-const reportIcon = ({ color, size }: { color: string; size: number }) => (
-  <Icon name="chart-bar" color={color} size={size} />
-);
 
 const headerStyle = {
   backgroundColor: colors.white,
@@ -44,60 +29,37 @@ const headerTitleStyle = {
 };
 
 function TabNavigator() {
-  const insets = useSafeAreaInsets();
+  const [index, setIndex] = useState(0);
+  const [routes] = useState([
+    {
+      key: 'Cashier',
+      title: 'Kasir',
+      focusedIcon: 'cash-register',
+    },
+    {
+      key: 'Inventory',
+      title: 'Produk',
+      focusedIcon: 'package-variant-closed',
+    },
+    {
+      key: 'Report',
+      title: 'Laporan',
+      focusedIcon: 'chart-bar',
+    },
+  ]);
 
   return (
-    <Tab.Navigator
-      screenOptions={{
-        headerShown: true,
-        headerStyle,
-        headerTitleStyle,
-        tabBarActiveTintColor: colors.black,
-        tabBarInactiveTintColor: colors.gray400,
-        tabBarStyle: {
-          backgroundColor: colors.white,
-          borderTopColor: colors.gray200,
-          borderTopWidth: 0.5,
-          elevation: 0,
-          height: Platform.OS === 'android' ? 56 + insets.bottom : 60,
-          paddingBottom: Platform.OS === 'android' ? insets.bottom : 8,
-          paddingTop: 6,
-        },
-        tabBarLabelStyle: {
-          fontSize: 11,
-          fontWeight: '700',
-        },
-      }}
-    >
-      <Tab.Screen
-        name="Cashier"
-        component={CashierScreen}
-        options={{
-          headerShown: false,
-          title: 'WAROENG',
-          tabBarLabel: 'Kasir',
-          tabBarIcon: cashierIcon,
-        }}
-      />
-      <Tab.Screen
-        name="Inventory"
-        component={InventoryScreen}
-        options={{
-          title: 'Produk',
-          tabBarLabel: 'Produk',
-          tabBarIcon: inventoryIcon,
-        }}
-      />
-      <Tab.Screen
-        name="Report"
-        component={ReportScreen}
-        options={{
-          title: 'Laporan',
-          tabBarLabel: 'Laporan',
-          tabBarIcon: reportIcon,
-        }}
-      />
-    </Tab.Navigator>
+    <BottomNavigation
+      navigationState={{ index, routes }}
+      onIndexChange={setIndex}
+      renderScene={BottomNavigation.SceneMap({
+        Cashier: CashierScreen,
+        Inventory: InventoryScreen,
+        Report: ReportScreen,
+      })}
+      activeIndicatorStyle={{ backgroundColor: colors.green100 }}
+      barStyle={{ backgroundColor: colors.white }}
+    />
   );
 }
 
@@ -117,6 +79,8 @@ function AppNavigator() {
         options={({ route }) => ({
           title: route.params?.itemId ? 'Edit Produk' : 'Tambah Produk',
           headerTintColor: colors.black,
+          headerStyle,
+          headerTitleStyle,
         })}
       />
       <Stack.Screen
@@ -125,6 +89,8 @@ function AppNavigator() {
         options={{
           title: 'Riwayat Transaksi',
           headerTintColor: colors.black,
+          headerStyle,
+          headerTitleStyle,
         }}
       />
       <Stack.Screen
@@ -133,6 +99,8 @@ function AppNavigator() {
         options={{
           title: 'Detail Transaksi',
           headerTintColor: colors.black,
+          headerStyle,
+          headerTitleStyle,
         }}
       />
       <Stack.Screen

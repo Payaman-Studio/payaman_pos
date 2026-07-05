@@ -1724,15 +1724,6 @@
     invariant "^2.2.4"
     nullthrows "^1.1.1"
 
-"@react-navigation/bottom-tabs@^7.18.0":
-  version "7.18.0"
-  resolved "https://registry.npmjs.org/@react-navigation/bottom-tabs/-/bottom-tabs-7.18.0.tgz"
-  integrity sha512-jH5T+1T9wfz8NGpHiuALs+fQAnZzVDG8tRssbckMlvkao0lYm+usBomrn8KJo2m8TaBWn133UPEEBNFk9uG+MA==
-  dependencies:
-    "@react-navigation/elements" "^2.9.23"
-    color "^4.2.3"
-    sf-symbols-typescript "^2.1.0"
-
 "@react-navigation/core@^7.20.0":
   version "7.20.0"
   resolved "https://registry.npmjs.org/@react-navigation/core/-/core-7.20.0.tgz"
