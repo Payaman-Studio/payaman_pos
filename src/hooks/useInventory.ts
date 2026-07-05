@@ -114,7 +114,7 @@ export function useInventory(filters?: UseInventoryFilters) {
         category: c.category,
         unit: getUnit(c.name, 'COMMODITY'),
         minStock: c.min_stock,
-        isLowStock: c.stock <= c.min_stock,
+        isLowStock: false,
         photo: null,
       })),
     [commodities],
