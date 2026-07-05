@@ -25,6 +25,7 @@ import {
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 import AlphabetIndex from '../components/inventory/AlphabetIndex';
+import BarcodeScannerModal from '../components/BarcodeScannerModal';
 import {
   borderRadius,
   colors,
@@ -96,6 +97,19 @@ function InventoryScreen() {
     [inventoryItems, sortBy],
   );
   const letters = useMemo(() => sections.map(s => s.title), [sections]);
+
+  const [barcodeScannerVisible, setBarcodeScannerVisible] = useState(false);
+
+  const handleBarcodeScanned = useCallback(
+    (barcode: string) => {
+      setBarcodeScannerVisible(false);
+      const found = inventoryItems.find(item => item.barcode === barcode);
+      if (found) {
+        setSearch(found.name);
+      }
+    },
+    [inventoryItems],
+  );
 
   const formatRupiah = useCallback((num: number) => {
     return 'Rp ' + num.toLocaleString('id-ID');
@@ -207,6 +221,14 @@ function InventoryScreen() {
           contentStyle={styles.searchBarContent}
           left={
             <TextInput.Icon icon="magnify" color={colors.gray400} size={20} />
+          }
+          right={
+            <TextInput.Icon
+              icon="barcode-scan"
+              color={colors.black}
+              size={20}
+              onPress={() => setBarcodeScannerVisible(true)}
+            />
           }
         />
 
@@ -374,6 +396,12 @@ function InventoryScreen() {
           onPress={() => navigation.navigate('ProductForm')}
         />
       </View>
+
+      <BarcodeScannerModal
+        visible={barcodeScannerVisible}
+        onClose={() => setBarcodeScannerVisible(false)}
+        onBarcodeScanned={handleBarcodeScanned}
+      />
     </View>
   );
 }

@@ -21,8 +21,9 @@ function buildWhereClause(filter?: CommodityFilter): {
   if (!filter) return { clause: '', values };
 
   if (filter.search) {
-    conditions.push('name LIKE ?');
-    values.push(`%${filter.search}%`);
+    conditions.push('(name LIKE ? OR barcode LIKE ?)');
+    const pattern = `%${filter.search}%`;
+    values.push(pattern, pattern);
   }
 
   if (filter.minPrice !== undefined) {
