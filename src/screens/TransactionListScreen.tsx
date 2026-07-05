@@ -8,6 +8,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useRecentTransactions, TransactionWithDetails } from '../hooks/useTransactions';
 import { RootStackParamList } from '../navigation/types';
 import { colors, spacing, borderRadius, fontSize, fontWeight } from '../constants/theme';
+import ResponsiveContainer from '../components/shared/ResponsiveContainer';
 
 const formatRupiah = (num: number) => {
   return 'Rp ' + num.toLocaleString('id-ID');
@@ -73,19 +74,21 @@ function TransactionListScreen() {
     <View style={styles.safeArea}>
       <StatusBar barStyle="dark-content" backgroundColor={colors.gray50} />
 
-      {!transactions || transactions.length === 0 ? (
-        <View style={styles.emptyContainer}>
-          <Icon name="receipt" size={48} color={colors.gray300} />
-          <Text style={styles.emptyText}>Belum ada transaksi</Text>
-        </View>
-      ) : (
-        <FlatList
-          data={transactions}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.listContent}
-          renderItem={renderTransactionItem}
-        />
-      )}
+      <ResponsiveContainer maxWidth={640}>
+        {!transactions || transactions.length === 0 ? (
+          <View style={styles.emptyContainer}>
+            <Icon name="receipt" size={48} color={colors.gray300} />
+            <Text style={styles.emptyText}>Belum ada transaksi</Text>
+          </View>
+        ) : (
+          <FlatList
+            data={transactions}
+            keyExtractor={(item) => item.id}
+            contentContainerStyle={styles.listContent}
+            renderItem={renderTransactionItem}
+          />
+        )}
+      </ResponsiveContainer>
     </View>
   );
 }

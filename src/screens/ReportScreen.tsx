@@ -29,6 +29,7 @@ import {
   fontSize,
   fontWeight,
 } from '../constants/theme';
+import ResponsiveContainer from '../components/shared/ResponsiveContainer';
 
 const formatRupiah = (num: number) => 'Rp ' + num.toLocaleString('id-ID');
 
@@ -112,12 +113,13 @@ function ReportScreen() {
           onPress={() => setDataModalVisible(true)}
         />
       </Appbar.Header>
-      <ScrollView
-        style={styles.container}
-        refreshControl={
-          <RefreshControl refreshing={isRefetching} onRefresh={onRefresh} />
-        }
-      >
+      <ResponsiveContainer maxWidth={900}>
+        <ScrollView
+          style={styles.container}
+          refreshControl={
+            <RefreshControl refreshing={isRefetching} onRefresh={onRefresh} />
+          }
+        >
         {/* Date Filter */}
         <View style={styles.dateFilterContainer}>
           {(['today', 'week', 'month', 'custom'] as Period[]).map(p => {
@@ -299,6 +301,7 @@ function ReportScreen() {
           })
         )}
       </ScrollView>
+      </ResponsiveContainer>
 
       {/* Custom Date Modal */}
       <Modal

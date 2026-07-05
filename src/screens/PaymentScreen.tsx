@@ -6,6 +6,7 @@ import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { colors, spacing, borderRadius, fontSize, fontWeight } from '../constants/theme';
 import { RootStackParamList } from '../navigation/types';
+import ResponsiveContainer from '../components/shared/ResponsiveContainer';
 import { NumericKeypad } from '../components/cashier/NumericKeypad';
 import { useCashierContext } from '../contexts/CashierContext';
 
@@ -66,7 +67,8 @@ function PaymentScreen() {
         </TouchableOpacity>
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ResponsiveContainer maxWidth={480}>
+        <ScrollView showsVerticalScrollIndicator={false}>
         <Text style={styles.totalLabel}>TOTAL TAGIHAN</Text>
         <Text style={styles.totalAmount}>
           Rp {finalAmount.toLocaleString('id-ID')}
@@ -121,6 +123,7 @@ function PaymentScreen() {
           {isSufficient ? 'Konfirmasi Pembayaran' : 'Nominal Belum Cukup'}
         </Button>
       </View>
+      </ResponsiveContainer>
     </View>
   );
 }

@@ -27,6 +27,7 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 import AlphabetIndex from '../components/inventory/AlphabetIndex';
 import BarcodeScannerModal from '../components/BarcodeScannerModal';
+import ResponsiveContainer from '../components/shared/ResponsiveContainer';
 import {
   borderRadius,
   colors,
@@ -214,7 +215,8 @@ function InventoryScreen() {
         />
       </Appbar.Header>
 
-      <View style={styles.container}>
+      <ResponsiveContainer maxWidth={900}>
+        <View style={styles.container}>
         {/* Search Input */}
         <TextInput
           placeholder="Cari produk..."
@@ -402,6 +404,7 @@ function InventoryScreen() {
           onPress={() => navigation.navigate('ProductForm')}
         />
       </View>
+      </ResponsiveContainer>
 
       <BarcodeScannerModal
         visible={barcodeScannerVisible}

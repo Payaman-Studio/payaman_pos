@@ -21,6 +21,7 @@ import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import { useInventory } from '../hooks/useInventory';
 import { RootStackParamList } from '../navigation/types';
 import BarcodeScannerModal from '../components/BarcodeScannerModal';
+import ResponsiveContainer from '../components/shared/ResponsiveContainer';
 import { savePhotoToStorage, resolveProductPhotoPath } from '../database/photoStorage';
 import { generateId } from '../database';
 import {
@@ -241,10 +242,11 @@ function ProductFormScreen() {
     <View style={[styles.safeArea, { paddingBottom: insets.bottom }]}>
       <StatusBar barStyle="dark-content" backgroundColor={colors.white} />
 
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        style={styles.flexContainer}
-      >
+      <ResponsiveContainer maxWidth={560}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          style={styles.flexContainer}
+        >
         <ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scrollContent}
@@ -552,6 +554,7 @@ function ProductFormScreen() {
           </Button>
         </View>
       </KeyboardAvoidingView>
+      </ResponsiveContainer>
 
       <BarcodeScannerModal
         visible={barcodeScannerVisible}

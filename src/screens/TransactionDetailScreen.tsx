@@ -9,6 +9,7 @@ import { useTransactionDetail } from '../hooks/useTransactions';
 import { RootStackParamList } from '../navigation/types';
 import * as dbTransactions from '../database/dbTransactions';
 import { colors, spacing, borderRadius, fontSize, fontWeight } from '../constants/theme';
+import ResponsiveContainer from '../components/shared/ResponsiveContainer';
 
 type RoutePropType = RouteProp<RootStackParamList, 'TransactionDetail'>;
 
@@ -75,7 +76,8 @@ function TransactionDetailScreen() {
   return (
     <View style={[styles.safeArea, { paddingBottom: insets.bottom }]}>
       <StatusBar barStyle="dark-content" backgroundColor={colors.gray50} />
-      <ScrollView style={styles.container}>
+      <ResponsiveContainer maxWidth={480}>
+        <ScrollView style={styles.container}>
         {/* Header: Badge tipe + nomor transaksi */}
         <View style={styles.headerSection}>
           <View style={[styles.typeBadge, { backgroundColor: typeCfg.bg }]}>
@@ -168,6 +170,7 @@ function TransactionDetailScreen() {
           Hapus Transaksi
         </Button>
       </ScrollView>
+      </ResponsiveContainer>
     </View>
   );
 }
