@@ -16,10 +16,10 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 
 const headerStyle = {
   backgroundColor: colors.white,
-  elevation: 0,
+  /* elevation: 0,
   shadowOpacity: 0,
   borderBottomWidth: 0.5,
-  borderBottomColor: colors.gray200,
+  borderBottomColor: colors.gray200, */
 };
 
 const headerTitleStyle = {

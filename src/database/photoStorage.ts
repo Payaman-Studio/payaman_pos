@@ -9,13 +9,58 @@ export async function ensurePhotoDir(): Promise<void> {
   }
 }
 
+function getExtension(sourceUri: string, mimeType?: string): string {
+  if (mimeType) {
+    const map: Record<string, string> = {
+      'image/jpeg': 'jpg',
+      'image/png': 'png',
+      'image/gif': 'gif',
+      'image/webp': 'webp',
+    };
+    return map[mimeType] || mimeType.split('/')[1] || 'jpg';
+  }
+
+  const uriParts = sourceUri.split('.');
+  if (uriParts.length > 1) {
+    const ext = uriParts.pop()?.split('?')[0];
+    if (ext && ext.length <= 5) return ext;
+  }
+
+  return 'jpg';
+}
+
+async function copyContentUri(sourceUri: string, destPath: string): Promise<void> {
+  const response = await fetch(sourceUri);
+  const blob = await response.blob();
+
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = async () => {
+      try {
+        const base64 = reader.result as string;
+        await RNFS.writeFile(
+          destPath,
+          base64.replace(/^data:.*?;base64,/, ''),
+          'base64',
+        );
+        resolve();
+      } catch (err) {
+        reject(err);
+      }
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+}
+
 export async function savePhotoToStorage(
   sourceUri: string,
   productId: string,
+  mimeType?: string,
 ): Promise<string> {
   await ensurePhotoDir();
 
-  const ext = sourceUri.split('.').pop()?.split('?')[0] || 'jpg';
+  const ext = getExtension(sourceUri, mimeType);
   const destPath = `${PHOTO_DIR}/${productId}.${ext}`;
 
   const destExists = await RNFS.exists(destPath);
@@ -23,8 +68,13 @@ export async function savePhotoToStorage(
     await RNFS.unlink(destPath);
   }
 
-  const sourcePath = sourceUri.replace(/^file:\/\//, '');
-  await RNFS.copyFile(sourcePath, destPath);
+  if (sourceUri.startsWith('content://')) {
+    await copyContentUri(sourceUri, destPath);
+  } else {
+    const sourcePath = sourceUri.replace(/^file:\/\//, '');
+    await RNFS.copyFile(sourcePath, destPath);
+  }
+
   return destPath;
 }
 

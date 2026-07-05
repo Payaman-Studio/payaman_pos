@@ -14,17 +14,29 @@ import { Text, Button, Appbar } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { useRecentTransactions, useTransactionSummary, Period } from '../hooks/useTransactions';
+import {
+  useRecentTransactions,
+  useTransactionSummary,
+  Period,
+} from '../hooks/useTransactions';
 import type { RootStackParamList } from '../navigation/types';
 import { TransactionWithDetails } from '../hooks/useTransactions';
 import DataManagementModal from '../components/DataManagementModal';
-import { colors, spacing, borderRadius, fontSize, fontWeight } from '../constants/theme';
+import {
+  colors,
+  spacing,
+  borderRadius,
+  fontSize,
+  fontWeight,
+} from '../constants/theme';
 
 const formatRupiah = (num: number) => 'Rp ' + num.toLocaleString('id-ID');
 
 const formatTime = (dateStr: string) => {
   const d = new Date(dateStr);
-  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+  return `${String(d.getHours()).padStart(2, '0')}:${String(
+    d.getMinutes(),
+  ).padStart(2, '0')}`;
 };
 
 const shortId = (id: string) => '#' + id.slice(0, 7).toUpperCase();
@@ -43,7 +55,8 @@ const typeIcons: Record<string, { icon: string; color: string }> = {
 };
 
 function ReportScreen() {
-  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const navigation =
+    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
   const [period, setPeriod] = useState<Period>('today');
   const [customFrom, setCustomFrom] = useState('');
@@ -71,7 +84,7 @@ function ReportScreen() {
   // Mini chart data
   const chartMax = useMemo(() => {
     if (!summary?.dailyTotals?.length) return 1;
-    return Math.max(...summary.dailyTotals.map((d) => d.total), 1);
+    return Math.max(...summary.dailyTotals.map(d => d.total), 1);
   }, [summary?.dailyTotals]);
 
   const handlePeriodPress = useCallback((p: Period) => {
@@ -89,16 +102,11 @@ function ReportScreen() {
     setCustomModalVisible(false);
   }, [customFrom, customTo]);
 
-
-
   return (
     <View style={styles.flexContainer}>
-      <StatusBar barStyle="dark-content" backgroundColor={colors.gray50} />
+      <StatusBar barStyle="dark-content" backgroundColor={colors.white} />
       <Appbar.Header style={styles.appbarHeader}>
-        <Appbar.Content
-          title="Laporan"
-          titleStyle={styles.appbarTitle}
-        />
+        <Appbar.Content title="Laporan" titleStyle={styles.appbarTitle} />
         <Appbar.Action
           icon="database-cog-outline"
           onPress={() => setDataModalVisible(true)}
@@ -112,15 +120,23 @@ function ReportScreen() {
       >
         {/* Date Filter */}
         <View style={styles.dateFilterContainer}>
-          {(['today', 'week', 'month', 'custom'] as Period[]).map((p) => {
+          {(['today', 'week', 'month', 'custom'] as Period[]).map(p => {
             const isActive = p === period;
             return (
               <TouchableOpacity
                 key={p}
-                style={[styles.dateFilterButton, isActive && styles.dateFilterButtonActive]}
+                style={[
+                  styles.dateFilterButton,
+                  isActive && styles.dateFilterButtonActive,
+                ]}
                 onPress={() => handlePeriodPress(p)}
               >
-                <Text style={[styles.dateFilterButtonText, isActive && styles.dateFilterButtonTextActive]}>
+                <Text
+                  style={[
+                    styles.dateFilterButtonText,
+                    isActive && styles.dateFilterButtonTextActive,
+                  ]}
+                >
                   {periodLabels[p]}
                 </Text>
               </TouchableOpacity>
@@ -138,17 +154,27 @@ function ReportScreen() {
           {summary && summary.changePercent !== null && (
             <View style={styles.heroComparison}>
               <Icon
-                name={summary.changePercent >= 0 ? 'trending-up' : 'trending-down'}
+                name={
+                  summary.changePercent >= 0 ? 'trending-up' : 'trending-down'
+                }
                 size={16}
-                color={summary.changePercent >= 0 ? colors.green500 : colors.red500}
+                color={
+                  summary.changePercent >= 0 ? colors.green500 : colors.red500
+                }
               />
               <Text
                 style={[
                   styles.heroComparisonText,
-                  { color: summary.changePercent >= 0 ? colors.green500 : colors.red500 },
+                  {
+                    color:
+                      summary.changePercent >= 0
+                        ? colors.green500
+                        : colors.red500,
+                  },
                 ]}
               >
-                {summary.changePercent >= 0 ? '+' : ''}{summary.changePercent}% dari periode sebelumnya
+                {summary.changePercent >= 0 ? '+' : ''}
+                {summary.changePercent}% dari periode sebelumnya
               </Text>
             </View>
           )}
@@ -158,10 +184,15 @@ function ReportScreen() {
             <View style={styles.chartContainer}>
               {summary.dailyTotals.map((day, idx) => {
                 const barHeight = Math.max((day.total / chartMax) * 60, 4);
-                const dayLabel = new Date(day.date).toLocaleDateString('id-ID', { weekday: 'short' });
+                const dayLabel = new Date(day.date).toLocaleDateString(
+                  'id-ID',
+                  { weekday: 'short' },
+                );
                 return (
                   <View key={idx} style={styles.chartBar}>
-                    <View style={[styles.chartBarFill, { height: barHeight }]} />
+                    <View
+                      style={[styles.chartBarFill, { height: barHeight }]}
+                    />
                     <Text style={styles.chartBarLabel}>{dayLabel}</Text>
                   </View>
                 );
@@ -174,7 +205,9 @@ function ReportScreen() {
         <View style={styles.summaryCardsContainer}>
           <View style={[styles.summaryCard, styles.summaryCardGray]}>
             <Text style={styles.summaryCardLabel}>TRANSAKSI</Text>
-            <Text style={styles.summaryCardValue}>{summary?.totalTransactions ?? 0}</Text>
+            <Text style={styles.summaryCardValue}>
+              {summary?.totalTransactions ?? 0}
+            </Text>
             <Text style={styles.summaryCardSubtext}>Total transaksi</Text>
           </View>
           <View style={[styles.summaryCard, styles.summaryCardGreen]}>
@@ -189,7 +222,9 @@ function ReportScreen() {
         {/* Recent Transactions */}
         <View style={styles.transactionsHeader}>
           <Text style={styles.transactionsTitle}>Transaksi Terakhir</Text>
-          <TouchableOpacity onPress={() => navigation.navigate('TransactionList')}>
+          <TouchableOpacity
+            onPress={() => navigation.navigate('TransactionList')}
+          >
             <Text style={styles.linkText}>Lihat Semua</Text>
           </TouchableOpacity>
         </View>
@@ -201,24 +236,51 @@ function ReportScreen() {
         ) : (
           transactions.map((tx: TransactionWithDetails) => {
             const isCitizen = tx.type === 'CITIZEN' || tx.type === 'MIXED';
-            const tagLabel = tx.type === 'CITIZEN' ? 'WARGA' : tx.type === 'MIXED' ? 'CAMPURAN' : 'TOKO';
+            const tagLabel =
+              tx.type === 'CITIZEN'
+                ? 'WARGA'
+                : tx.type === 'MIXED'
+                ? 'CAMPURAN'
+                : 'TOKO';
             const iconCfg = typeIcons[tx.type] || typeIcons.TOKO;
 
             return (
               <TouchableOpacity
                 key={tx.id}
                 activeOpacity={0.7}
-                onPress={() => navigation.navigate('TransactionDetail', { transactionId: tx.id })}
+                onPress={() =>
+                  navigation.navigate('TransactionDetail', {
+                    transactionId: tx.id,
+                  })
+                }
               >
-                <View style={[styles.transactionCard, isCitizen ? styles.greenBorderLeft : null]}>
+                <View
+                  style={[
+                    styles.transactionCard,
+                    isCitizen ? styles.greenBorderLeft : null,
+                  ]}
+                >
                   <View style={styles.transactionLeft}>
-                    <View style={[styles.transactionIconCircle, { backgroundColor: iconCfg.color + '20' }]}>
-                      <Icon name={iconCfg.icon} size={16} color={iconCfg.color} />
+                    <View
+                      style={[
+                        styles.transactionIconCircle,
+                        { backgroundColor: iconCfg.color + '20' },
+                      ]}
+                    >
+                      <Icon
+                        name={iconCfg.icon}
+                        size={16}
+                        color={iconCfg.color}
+                      />
                     </View>
                     <View style={styles.transactionInfo}>
                       <View style={styles.transactionTagRow}>
-                        <Text style={styles.transactionId}>{shortId(tx.id)}</Text>
-                        <Text style={isCitizen ? styles.tagCitizen : styles.tagToko}>
+                        <Text style={styles.transactionId}>
+                          {shortId(tx.id)}
+                        </Text>
+                        <Text
+                          style={isCitizen ? styles.tagCitizen : styles.tagToko}
+                        >
                           {tagLabel}
                         </Text>
                       </View>
@@ -228,7 +290,9 @@ function ReportScreen() {
                       </Text>
                     </View>
                   </View>
-                  <Text style={styles.transactionAmount}>{formatRupiah(tx.net_amount)}</Text>
+                  <Text style={styles.transactionAmount}>
+                    {formatRupiah(tx.net_amount)}
+                  </Text>
                 </View>
               </TouchableOpacity>
             );
@@ -314,7 +378,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: spacing.lg,
-    backgroundColor: colors.gray50,
+    backgroundColor: colors.gray100,
   },
   // Date Filter
   dateFilterContainer: {

@@ -21,7 +21,7 @@ import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import { useInventory } from '../hooks/useInventory';
 import { RootStackParamList } from '../navigation/types';
 import BarcodeScannerModal from '../components/BarcodeScannerModal';
-import { savePhotoToStorage } from '../database/photoStorage';
+import { savePhotoToStorage, resolveProductPhotoPath } from '../database/photoStorage';
 import { generateId } from '../database';
 import {
   colors,
@@ -68,6 +68,7 @@ function ProductFormScreen() {
   const [minStock, setMinStock] = useState('1');
   const [isCommodity, setIsCommodity] = useState(false);
   const [photo, setPhoto] = useState<string | null>(null);
+  const [photoMimeType, setPhotoMimeType] = useState<string | undefined>(undefined);
 
   // UI States
   const [categoryMenuVisible, setCategoryMenuVisible] = useState(false);
@@ -93,7 +94,9 @@ function ProductFormScreen() {
           setCostPrice(item.costPrice.toString());
         }
         if (item.photo) {
-          setPhoto(item.photo);
+          resolveProductPhotoPath(item.id, item.photo).then(resolved => {
+            setPhoto(resolved || item.photo);
+          });
         }
       }
     }
@@ -116,7 +119,7 @@ function ProductFormScreen() {
     try {
       if (photo) {
         const photoId = isEditMode && itemId ? itemId : generateId();
-        finalPhoto = await savePhotoToStorage(photo, photoId);
+        finalPhoto = await savePhotoToStorage(photo, photoId, photoMimeType);
       }
 
       if (isEditMode && itemId && itemType) {
@@ -214,6 +217,7 @@ function ProductFormScreen() {
     launchImageLibrary({ mediaType: 'photo', quality: 0.7 }, response => {
       if (response.assets?.[0]?.uri) {
         setPhoto(response.assets[0].uri);
+        setPhotoMimeType(response.assets[0].type);
       }
     });
   };
@@ -222,6 +226,7 @@ function ProductFormScreen() {
     launchCamera({ mediaType: 'photo', quality: 0.7 }, response => {
       if (response.assets?.[0]?.uri) {
         setPhoto(response.assets[0].uri);
+        setPhotoMimeType(response.assets[0].type);
       }
     });
   };
