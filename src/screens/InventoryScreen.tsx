@@ -19,6 +19,7 @@ import {
   Card,
   FAB,
   Menu,
+  Snackbar,
   Text,
   TextInput,
 } from 'react-native-paper';
@@ -74,6 +75,8 @@ function InventoryScreen() {
   const [lowStockOnly, setLowStockOnly] = useState(false);
   const [sortBy, setSortBy] = useState<SortBy>('name');
   const [sortMenuVisible, setSortMenuVisible] = useState(false);
+  const [snackbarVisible, setSnackbarVisible] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
 
   const sectionListRef =
     useRef<SectionList<InventoryItem, { title: string }>>(null);
@@ -106,6 +109,9 @@ function InventoryScreen() {
       const found = inventoryItems.find(item => item.barcode === barcode);
       if (found) {
         setSearch(found.name);
+      } else {
+        setSnackbarMessage(`Barcode "${barcode}" tidak ditemukan di daftar produk`);
+        setSnackbarVisible(true);
       }
     },
     [inventoryItems],
@@ -402,6 +408,14 @@ function InventoryScreen() {
         onClose={() => setBarcodeScannerVisible(false)}
         onBarcodeScanned={handleBarcodeScanned}
       />
+
+      <Snackbar
+        visible={snackbarVisible}
+        onDismiss={() => setSnackbarVisible(false)}
+        duration={2500}
+      >
+        {snackbarMessage}
+      </Snackbar>
     </View>
   );
 }

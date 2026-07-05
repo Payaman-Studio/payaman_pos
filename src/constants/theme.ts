@@ -20,6 +20,9 @@ export const colors = {
   red500: '#DC2626',
 
   green50: '#F0FDFA',
+  // Catatan desain: green100 khusus dipakai sbg active-indicator navigasi
+  // (tab bar). Utk kontrol filter/aksi (chip, tombol), state aktif tetap
+  // pakai black/gray900 — dua bahasa warna ini sengaja dipisah, bukan bug.
   green100: '#DCFCE7',
   green200: '#BBF7D0',
   green500: '#10B981',
